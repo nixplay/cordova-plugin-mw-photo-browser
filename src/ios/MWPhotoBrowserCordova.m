@@ -9,7 +9,7 @@
 #import "MWPhotoBrowserCordova.h"
 #import "MWPhotoBrowser.h"
 #import <Cordova/CDVViewController.h>
-#import <Cordova/CDVDebug.h>
+// #import <Cordova/CDVDebug.h>
 
 
 @implementation MWPhotoBrowserCordova
