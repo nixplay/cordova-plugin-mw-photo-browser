@@ -49,7 +49,7 @@
 
     // Modal
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
-    nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+//    nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     [self.viewController presentModalViewController:nc animated:YES];
     //[nc release];
 
