@@ -22,8 +22,7 @@
     </config-file>
     <header-file src="src/ios/MWPhotoBrowserCordova.h" />
     <source-file src="src/ios/MWPhotoBrowserCordova.m" />
-    <pod name="MWPhotoBrowser" git="https://github.com/nixplay/MWPhotoBrowser.git" branch="develop"/>
-    <pod name="MHVideoPhotoGallery"/>
+    <pod name="MWPhotoBrowser"/>
   </platform>
 
 </plugin>
