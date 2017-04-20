@@ -43,14 +43,16 @@
     // Create & present browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate: self];
     // Set options
-    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+//    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     browser.displayActionButton = YES; // Show action button to save, copy or email photos (defaults to NO)
     [browser setCurrentPhotoIndex: photoIndex]; // Example: allows second image to be presented first
 
     // Modal
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
 //    nc.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-    [self.viewController presentModalViewController:nc animated:YES];
+    [self.viewController presentViewController:nc animated:YES completion:^{
+        
+    }];
     //[nc release];
 
     // Release
