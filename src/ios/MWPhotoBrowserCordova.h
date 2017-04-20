@@ -21,6 +21,8 @@
 @property (nonatomic, retain) NSArray *photos;
 @property (nonatomic, retain) NSArray *thumbs;
 @property (nonatomic, retain) UINavigationController *navigationController;
+@property (nonatomic, retain) MWPhotoBrowser *browser;
+
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
 @end

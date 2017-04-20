@@ -17,6 +17,7 @@
 @synthesize callbackIds = _callbackIds;
 @synthesize photos = _photos;
 @synthesize thumbs = _thumbs;
+@synthesize browser = _browser;
 @synthesize navigationController = _navigationController;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
@@ -52,6 +53,7 @@
     
     // Create & present browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate: self];
+    _browser = browser;
     // Set options
 //    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     browser.displayActionButton = YES; // Show action button to save, copy or email photos (defaults to NO)
@@ -103,7 +105,8 @@
 
 -(void)action:(UIBarButtonItem *)sender
 {
-    
+    _browser.displaySelectionButtons = !_browser.displaySelectionButtons;
+    [_browser setNeedsFocusUpdate];
     NSLog(@"action %@",sender);
 }
 
