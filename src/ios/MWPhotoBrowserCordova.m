@@ -67,8 +67,8 @@
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
     _navigationController = nc;
-    UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Home", nil) style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
-    browser.navigationItem.leftBarButtonItem = newBackButton;
+    // UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Home", nil) style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
+    // browser.navigationItem.leftBarButtonItem = newBackButton;
     
     
     _navigationController.delegate = self;
@@ -103,20 +103,20 @@
 }
 
 
--(void)action:(UIBarButtonItem *)sender
-{
-    _browser.displaySelectionButtons = !_browser.displaySelectionButtons;
-    [_browser setNeedsFocusUpdate];
-    NSLog(@"action %@",sender);
-}
+// -(void)action:(UIBarButtonItem *)sender
+// {
+//     _browser.displaySelectionButtons = !_browser.displaySelectionButtons;
+//     [_browser setNeedsFocusUpdate];
+//     NSLog(@"action %@",sender);
+// }
 
 
 #pragma mark - UINavigationControllerDelegate
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated{
     if([viewController isKindOfClass:[MWPhotoBrowser class] ]){
-        UIBarButtonItem *newActionButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"action", nil) style:UIBarButtonItemStylePlain target:self action:@selector(action:)];
-        viewController.navigationItem.rightBarButtonItem = newActionButton;
+        // UIBarButtonItem *newActionButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"action", nil) style:UIBarButtonItemStylePlain target:self action:@selector(action:)];
+        // viewController.navigationItem.rightBarButtonItem = newActionButton;
         
     }
 //else{
