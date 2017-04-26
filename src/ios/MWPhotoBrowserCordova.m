@@ -18,6 +18,7 @@
 @synthesize photos = _photos;
 @synthesize thumbs = _thumbs;
 @synthesize browser = _browser;
+@synthesize data = _data;
 @synthesize navigationController = _navigationController;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
@@ -35,7 +36,9 @@
     NSMutableArray *images = [[NSMutableArray alloc] init];
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
-
+    _data = [options objectForKey:@"data"];
+    
+//    NSLog(@"data %@",_data);
     for (NSString* url in [options objectForKey:@"images"])
     {
         [images addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
@@ -46,7 +49,11 @@
     }
 
     self.photos = images;
-    self.thumbs = thumbs;
+    if([thumbs count] == 0){
+        self.thumbs = self.photos;
+    }else{
+        self.thumbs = thumbs;
+    }
     
     
 
@@ -74,11 +81,13 @@
     _navigationController.delegate = self;
     
     CATransition *transition = [[CATransition alloc] init];
-    transition.duration = 0.5;
+    transition.duration = 0.35;
     transition.type = kCATransitionPush;
     transition.subtype = kCATransitionFromRight;
     [self.viewController.view.window.layer addAnimation:transition forKey:kCATransition];
-    [self.viewController presentViewController:nc animated:NO completion:nil];
+    [self.viewController presentViewController:nc animated:NO completion:^{
+        
+    }];
 //    [self.viewController presentViewController:nc animated:YES completion:nil];
     
     //[nc release];
@@ -91,15 +100,7 @@
 
 -(void)home:(UIBarButtonItem *)sender
 {
-    
-    CATransition *transition = [CATransition animation];
-    transition.duration = 0.35;
-    transition.timingFunction =
-    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-    transition.type = kCATransitionMoveIn;
-    transition.subtype = kCATransitionFromLeft;
-    [self.navigationController.view.window.layer addAnimation:transition forKey:kCATransition];
-    [self.navigationController dismissViewControllerAnimated:NO completion:nil];
+    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 
 
@@ -147,6 +148,8 @@
 }
 
 -(void) photoBrowserDidFinishModalPresentation:(MWPhotoBrowser*) browser{
-    [self.viewController dismissViewControllerAnimated:YES completion:nil];
+    
+    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+
 }
 @end
