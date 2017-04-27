@@ -13,6 +13,7 @@
 #import "UIImage+MWPhotoBrowser.h"
 #import <Cordova/CDVPlugin+Resources.h>
 // #import <Cordova/CDVDebug.h>
+#import "XFDialogBuilder.h"
 
 
 @implementation MWPhotoBrowserCordova
@@ -70,10 +71,10 @@
     _browser = browser;
     // Set options
     //    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
-    browser.displayActionButton = NO; // Show action button to save, copy or email photos (defaults to NO)
+    browser.displayActionButton = YES; // Show action button to save, copy or email photos (defaults to NO)
     browser.startOnGrid = YES;
     browser.enableGrid = YES;
-    browser.displayNavArrows = NO;
+    browser.displayNavArrows = YES;
     
     [browser setCurrentPhotoIndex: photoIndex]; // Example: allows second image to be presented first
     
@@ -125,16 +126,17 @@
                                                                      CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: dictionary];
                                                                      [self.commandDelegate sendPluginResult:result callbackId:_callbackId];
                                                                      
+                                                                     [self buildDialogWithTitle:@"Test" text:@"Test content"];
                                                                  }
                                                                  else if(buttonIndex == 0){
                                                                      _browser.displaySelectionButtons = YES;
                                                                      [_browser reloadData];
-                                                                     [_browser setNeedsFocusUpdate];
+                                                                     
                                                                  }else{
                                                                      [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
                                                                      _browser.displaySelectionButtons = NO;
                                                                      [_browser reloadData];
-                                                                     [_browser setNeedsFocusUpdate];
+                                                                     
                                                                  }
                                                              }
                                                     cancelButtonTitle:nil
@@ -151,7 +153,22 @@
     self.actionSheet = actionSheet;
 }
 
+-(void) buildDialogWithTitle:(NSString*) title text:(NSString*)text {
+    __weak MWPhotoBrowserCordova *weakSelf = self;
+    self.dialogView =
+    [[[XFDialogNotice dialogWithTitle:title
+                                attrs:@{
+                                        XFDialogTitleViewBackgroundColor : [UIColor grayColor],
+                                        XFDialogNoticeText:text,
+                                        XFDialogLineColor : [UIColor darkGrayColor],
+                                        }
+                       commitCallBack:^(NSString *inputText) {
+                           [weakSelf.dialogView hideWithAnimationBlock:nil];
+                       }] showWithAnimationBlock:nil] setCancelCallBack:^{
+                           
+                       }];
 
+}
 -(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
     if(_actionSheet != nil)
         [_actionSheet rotateToCurrentOrientation];
@@ -216,18 +233,19 @@
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index selectedChanged:(BOOL)selected{
     NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
 }
-- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showHideGridController:(MWGridViewController*)gridController{
-}
+//- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showHideGridController:(MWGridViewController*)gridController{
+//}
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser setNavBarAppearance:(UINavigationBar *)navigationBar{
     
     //    UINavigationBar *navBar = self.navigationController.navigationBar;
     //    navBar.tintColor = [UIColor whiteColor];
     //    navBar.barTintColor = nil;
-    navigationBar.shadowImage = nil;
-    navigationBar.translucent = NO;
+//    navigationBar.shadowImage = nil;
+//    navigationBar.translucent = NO;
     photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
     [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
+//    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
+    return YES;
 }
 @end
