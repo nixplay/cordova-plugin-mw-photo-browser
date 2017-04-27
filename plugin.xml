@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
            id="com.wunwun.plugins.mw-photo-browser-cordova"
-      version="1.0.6">
+      version="1.0.7">
 
   <name>MWPhotoBrowserCordova</name>
   <author>Calvin Lai</author>
@@ -24,6 +24,7 @@
     <source-file src="src/ios/MWPhotoBrowserCordova.m" />
     <pod name="MWPhotoBrowser" git="https://github.com/nixplay/MWPhotoBrowser" branch="develop"/>
     <pod name="SDWebImage" version="3.7.5"/>
+    <pod name="IBActionSheet" />
   </platform>
 
 </plugin>

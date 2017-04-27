@@ -9,6 +9,7 @@
 #import "MWPhotoBrowserCordova.h"
 #import "MWPhotoBrowser.h"
 #import <Cordova/CDVViewController.h>
+#import "IBActionSheet.h"
 // #import <Cordova/CDVDebug.h>
 
 
@@ -74,8 +75,8 @@
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
     _navigationController = nc;
-    // UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Home", nil) style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
-    // browser.navigationItem.leftBarButtonItem = newBackButton;
+     UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Function", nil) style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
+     browser.navigationItem.rightBarButtonItem = newBackButton;
     
     
     _navigationController.delegate = self;
@@ -100,7 +101,24 @@
 
 -(void)home:(UIBarButtonItem *)sender
 {
-    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+//    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+    IBActionSheet *actionSheet = [[IBActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)
+                                                             callback:^(IBActionSheet *actionSheet, NSInteger buttonIndex) {
+                                                                 NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
+                                                             }
+                                                    cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
+                                               destructiveButtonTitle:nil
+                                                    otherButtonTitles:nil, nil];
+    [actionSheet addButtonWithTitle:NSLocalizedString(@"Select Photos", nil)];
+    [actionSheet addButtonWithTitle:NSLocalizedString(@"Add Album to Playlist", nil)];
+    [actionSheet addButtonWithTitle:NSLocalizedString(@"Edit Album Name", nil)];
+    [actionSheet addButtonWithTitle:NSLocalizedString(@"Delete Album", nil)];
+    [actionSheet  showInView:self.navigationController.view ];
+//    - (id)initWithTitle:(NSString *)title delegate:(id<IBActionSheetDelegate>)delegate cancelButtonTitle:(NSString *)cancelTitle destructiveButtonTitle:(NSString *)destructiveTitle otherButtonTitles:(NSString *)otherTitles, ... NS_REQUIRES_NIL_TERMINATION;
+//    
+//    - (void)showInView:(UIView *)theView;
+
+    
 }
 
 
@@ -148,8 +166,21 @@
 }
 
 -(void) photoBrowserDidFinishModalPresentation:(MWPhotoBrowser*) browser{
-    
-    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-
+    [browser dismissViewControllerAnimated:YES completion:nil];
 }
+
+//- (NSString *)photoBrowser:(MWPhotoBrowser *)photoBrowser titleForPhotoAtIndex:(NSUInteger)index{
+//}
+- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index{
+    NSLog(@"didDisplayPhotoAtIndex %lu", (unsigned long)index);
+}
+- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser actionButtonPressedForPhotoAtIndex:(NSUInteger)index{
+    NSLog(@"actionButtonPressedForPhotoAtIndex %lu", (unsigned long)index);
+}
+//- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser isPhotoSelectedAtIndex:(NSUInteger)index{}
+- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index selectedChanged:(BOOL)selected{
+    NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
+}
+//- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showHideGridController:(MWGridViewController*)gridController{}
+
 @end
