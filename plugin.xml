@@ -25,6 +25,7 @@
     <pod name="MWPhotoBrowser" git="https://github.com/nixplay/MWPhotoBrowser" branch="develop"/>
     <pod name="SDWebImage" version="3.7.5"/>
     <pod name="IBActionSheet" />
+    <pod name="XFDialogBuilder"/>
     <resource-file src="src/ios/MWPhotoBrowserCordova.bundle" />
   </platform>
 
