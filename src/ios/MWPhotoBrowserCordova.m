@@ -10,6 +10,8 @@
 #import "MWPhotoBrowser.h"
 #import <Cordova/CDVViewController.h>
 #import "IBActionSheet.h"
+#import "UIImage+MWPhotoBrowser.h"
+#import <Cordova/CDVPlugin+Resources.h>
 // #import <Cordova/CDVDebug.h>
 
 
@@ -75,7 +77,11 @@
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
     _navigationController = nc;
-     UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Function", nil) style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
+    NSString* resourceIdentifier = [NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"image/options.png"];
+    
+    [UIImage imageNamed:resourceIdentifier];
+    
+     UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:resourceIdentifier] style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
      browser.navigationItem.rightBarButtonItem = newBackButton;
     
     
