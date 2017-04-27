@@ -16,32 +16,35 @@
 
 
 @implementation MWPhotoBrowserCordova
-
+@synthesize callbackId = _callbackId;
 @synthesize callbackIds = _callbackIds;
 @synthesize photos = _photos;
 @synthesize thumbs = _thumbs;
 @synthesize browser = _browser;
 @synthesize data = _data;
+@synthesize actionSheet = _actionSheet;
 @synthesize navigationController = _navigationController;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
-      _callbackIds = [[NSMutableDictionary alloc] init];
+        _callbackIds = [[NSMutableDictionary alloc] init];
     }
     return _callbackIds;
 }
 
 - (void)showGallery:(CDVInvokedUrlCommand*)command {
     NSLog(@"showGalleryWith:%@", command.arguments);
-
+    
+    _callbackId = command.callbackId;
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
-
+    
     NSDictionary *options = [command.arguments objectAtIndex:0];
     NSMutableArray *images = [[NSMutableArray alloc] init];
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
     _data = [options objectForKey:@"data"];
     
-//    NSLog(@"data %@",_data);
+    
+    //    NSLog(@"data %@",_data);
     for (NSString* url in [options objectForKey:@"images"])
     {
         [images addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
@@ -50,29 +53,29 @@
     {
         [thumbs addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
     }
-
+    
     self.photos = images;
     if([thumbs count] == 0){
         self.thumbs = self.photos;
     }else{
         self.thumbs = thumbs;
     }
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onOrientationChanged:) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
     
     
-
     
     // Create & present browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate: self];
     _browser = browser;
     // Set options
-//    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
-    browser.displayActionButton = YES; // Show action button to save, copy or email photos (defaults to NO)
+    //    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    browser.displayActionButton = NO; // Show action button to save, copy or email photos (defaults to NO)
     browser.startOnGrid = YES;
     browser.enableGrid = YES;
-    browser.displayNavArrows = YES;
-    browser.displayActionButton = YES;
+    browser.displayNavArrows = NO;
+    
     [browser setCurrentPhotoIndex: photoIndex]; // Example: allows second image to be presented first
-
+    
     // Modal
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
@@ -81,8 +84,8 @@
     
     [UIImage imageNamed:resourceIdentifier];
     
-     UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:resourceIdentifier] style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
-     browser.navigationItem.rightBarButtonItem = newBackButton;
+    UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:resourceIdentifier] style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
+    browser.navigationItem.rightBarButtonItem = newBackButton;
     
     
     _navigationController.delegate = self;
@@ -95,38 +98,63 @@
     [self.viewController presentViewController:nc animated:NO completion:^{
         
     }];
-//    [self.viewController presentViewController:nc animated:YES completion:nil];
+    //    [self.viewController presentViewController:nc animated:YES completion:nil];
     
     //[nc release];
-
+    
     // Release
     //[browser release];
     //[images release];
-
+    
+    
+    
 }
 
 -(void)home:(UIBarButtonItem *)sender
 {
-//    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+    //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
     IBActionSheet *actionSheet = [[IBActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)
                                                              callback:^(IBActionSheet *actionSheet, NSInteger buttonIndex) {
-                                                                 NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
+                                                                 if(buttonIndex > 0 &&buttonIndex < actionSheet.numberOfButtons){
+                                                                     
+                                                                     NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
+                                                                     NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+                                                                     IBActionSheetButton * button = [actionSheet.buttons objectAtIndex:buttonIndex];
+                                                                     [dictionary setValue: button.currentTitle forKey:@"title"];
+                                                                     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: dictionary];
+                                                                     [self.commandDelegate sendPluginResult:result callbackId:_callbackId];
+                                                                     
+                                                                 }
+                                                                 else if(buttonIndex == 0){
+                                                                     _browser.displaySelectionButtons = YES;
+                                                                     [_browser reloadData];
+                                                                     [_browser setNeedsFocusUpdate];
+                                                                 }else{
+                                                                     [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
+                                                                     _browser.displaySelectionButtons = NO;
+                                                                     [_browser reloadData];
+                                                                     [_browser setNeedsFocusUpdate];
+                                                                 }
                                                              }
-                                                    cancelButtonTitle:NSLocalizedString(@"Cancel", nil)
+                                                    cancelButtonTitle:nil
                                                destructiveButtonTitle:nil
                                                     otherButtonTitles:nil, nil];
+    
     [actionSheet addButtonWithTitle:NSLocalizedString(@"Select Photos", nil)];
     [actionSheet addButtonWithTitle:NSLocalizedString(@"Add Album to Playlist", nil)];
     [actionSheet addButtonWithTitle:NSLocalizedString(@"Edit Album Name", nil)];
     [actionSheet addButtonWithTitle:NSLocalizedString(@"Delete Album", nil)];
+    [actionSheet setTitleTextColor:[UIColor blackColor]];
+    [actionSheet rotateToCurrentOrientation];
     [actionSheet  showInView:self.navigationController.view ];
-//    - (id)initWithTitle:(NSString *)title delegate:(id<IBActionSheetDelegate>)delegate cancelButtonTitle:(NSString *)cancelTitle destructiveButtonTitle:(NSString *)destructiveTitle otherButtonTitles:(NSString *)otherTitles, ... NS_REQUIRES_NIL_TERMINATION;
-//    
-//    - (void)showInView:(UIView *)theView;
-
-    
+    self.actionSheet = actionSheet;
 }
 
+
+-(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
+    if(_actionSheet != nil)
+        [_actionSheet rotateToCurrentOrientation];
+}
 
 // -(void)action:(UIBarButtonItem *)sender
 // {
@@ -144,9 +172,9 @@
         // viewController.navigationItem.rightBarButtonItem = newActionButton;
         
     }
-//else{
-//        [self.viewController dismissViewControllerAnimated:YES completion:nil];
-//    }
+    //else{
+    //        [self.viewController dismissViewControllerAnimated:YES completion:nil];
+    //    }
 }
 
 
@@ -187,6 +215,18 @@
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index selectedChanged:(BOOL)selected{
     NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
 }
-//- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showHideGridController:(MWGridViewController*)gridController{}
-
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showHideGridController:(MWGridViewController*)gridController{
+}
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser setNavBarAppearance:(UINavigationBar *)navigationBar{
+    
+    //    UINavigationBar *navBar = self.navigationController.navigationBar;
+    //    navBar.tintColor = [UIColor whiteColor];
+    //    navBar.barTintColor = nil;
+    navigationBar.shadowImage = nil;
+    navigationBar.translucent = NO;
+    photoBrowser.navigationItem.title = @"Albums";
+    navigationBar.barStyle = UIBarStyleDefault;
+    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
+}
 @end

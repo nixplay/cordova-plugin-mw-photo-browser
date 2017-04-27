@@ -9,21 +9,21 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
 #import "MWPhotoBrowser.h"
-
+#import "IBActionSheet.h"
 @interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate> {
 
     NSMutableDictionary* callbackIds;
     NSArray* photos;
-
+    
 }
-
+@property (copy)   NSString* callbackId;
 @property (nonatomic, retain) NSMutableDictionary* callbackIds;
 @property (nonatomic, retain) NSArray *photos;
 @property (nonatomic, retain) NSArray *thumbs;
 @property (nonatomic, retain) NSDictionary *data;
 @property (nonatomic, retain) UINavigationController *navigationController;
 @property (nonatomic, retain) MWPhotoBrowser *browser;
-
+@property (nonatomic, retain) IBActionSheet *actionSheet;
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
 @end
