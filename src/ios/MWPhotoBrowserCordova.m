@@ -77,7 +77,7 @@
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
     _navigationController = nc;
-    NSString* resourceIdentifier = [NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"image/options.png"];
+    NSString* resourceIdentifier = [NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"];
     
     [UIImage imageNamed:resourceIdentifier];
     
