@@ -24,6 +24,7 @@
 @synthesize data = _data;
 @synthesize actionSheet = _actionSheet;
 @synthesize navigationController = _navigationController;
+@synthesize albumName = _albumName;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
         _callbackIds = [[NSMutableDictionary alloc] init];
@@ -42,7 +43,7 @@
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
     _data = [options objectForKey:@"data"];
-    
+    _albumName = [options objectForKey:@"albumName"];
     
     //    NSLog(@"data %@",_data);
     for (NSString* url in [options objectForKey:@"images"])
@@ -224,7 +225,7 @@
     //    navBar.barTintColor = nil;
     navigationBar.shadowImage = nil;
     navigationBar.translucent = NO;
-    photoBrowser.navigationItem.title = @"Albums";
+    photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
     [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
     [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];

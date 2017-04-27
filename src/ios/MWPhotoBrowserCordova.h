@@ -24,6 +24,7 @@
 @property (nonatomic, retain) UINavigationController *navigationController;
 @property (nonatomic, retain) MWPhotoBrowser *browser;
 @property (nonatomic, retain) IBActionSheet *actionSheet;
+@property (nonatomic, retain) NSString *albumName;
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
 @end
