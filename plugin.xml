@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
            id="com.wunwun.plugins.mw-photo-browser-cordova"
-      version="1.0.13">
+      version="1.0.14">
 
   <name>MWPhotoBrowserCordova</name>
   <author>Calvin Lai</author>
