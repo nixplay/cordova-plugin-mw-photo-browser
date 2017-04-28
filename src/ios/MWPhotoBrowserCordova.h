@@ -23,6 +23,7 @@
 @property (nonatomic, retain) NSArray *thumbs;
 @property (nonatomic, retain) NSDictionary *data;
 @property (nonatomic, retain) UINavigationController *navigationController;
+@property (nonatomic, retain) MWGridViewController* gridViewController;
 @property (nonatomic, retain) MWPhotoBrowser *browser;
 @property (nonatomic, retain) IBActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;

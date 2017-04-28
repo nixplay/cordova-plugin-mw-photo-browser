@@ -8,6 +8,7 @@
 
 #import "MWPhotoBrowserCordova.h"
 #import "MWPhotoBrowser.h"
+#import "MWGridViewController.h"
 #import <Cordova/CDVViewController.h>
 #import "IBActionSheet.h"
 #import "UIImage+MWPhotoBrowser.h"
@@ -26,6 +27,7 @@
 @synthesize actionSheet = _actionSheet;
 @synthesize navigationController = _navigationController;
 @synthesize albumName = _albumName;
+@synthesize gridViewController = _gridViewController;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
         _callbackIds = [[NSMutableDictionary alloc] init];
@@ -71,10 +73,10 @@
     _browser = browser;
     // Set options
     //    browser.wantsFullScreenLayout = NO; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
-    browser.displayActionButton = YES; // Show action button to save, copy or email photos (defaults to NO)
+    browser.displayActionButton = NO; // Show action button to save, copy or email photos (defaults to NO)
     browser.startOnGrid = YES;
     browser.enableGrid = YES;
-    browser.displayNavArrows = YES;
+    browser.displayNavArrows = NO;
     
     [browser setCurrentPhotoIndex: photoIndex]; // Example: allows second image to be presented first
     
@@ -115,6 +117,7 @@
 -(void)home:(UIBarButtonItem *)sender
 {
     //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+    __weak MWPhotoBrowserCordova *weakSelf = self;
     IBActionSheet *actionSheet = [[IBActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)
                                                              callback:^(IBActionSheet *actionSheet, NSInteger buttonIndex) {
                                                                  if(buttonIndex > 0 &&buttonIndex < actionSheet.numberOfButtons){
@@ -129,13 +132,26 @@
                                                                      [self buildDialogWithTitle:@"Test" text:@"Test content"];
                                                                  }
                                                                  else if(buttonIndex == 0){
-                                                                     _browser.displaySelectionButtons = YES;
-                                                                     [_browser reloadData];
+                                                                     if(!_browser.displaySelectionButtons){
+                                                                         _browser.displaySelectionButtons = YES;
+                                                                         [_browser reloadData];
+                                                                     }
+
+//                                                                     if(_gridController != nil){
+//                                                                         [_gridController reloadData];
+                                                                     
+//                                                                     }
                                                                      
                                                                  }else{
+                                                                     
                                                                      [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
-                                                                     _browser.displaySelectionButtons = NO;
-                                                                     [_browser reloadData];
+                                                                     if(_browser.displaySelectionButtons){
+                                                                         _browser.displaySelectionButtons = NO;
+                                                                         [_browser reloadData];
+                                                                     }
+//                                                                     if(_gridController != nil){
+//                                                                     [_gridController  reloadData];
+//                                                                     }
                                                                      
                                                                  }
                                                              }
@@ -148,8 +164,8 @@
     [actionSheet addButtonWithTitle:NSLocalizedString(@"Edit Album Name", nil)];
     [actionSheet addButtonWithTitle:NSLocalizedString(@"Delete Album", nil)];
     [actionSheet setTitleTextColor:[UIColor blackColor]];
-    [actionSheet rotateToCurrentOrientation];
-    [actionSheet  showInView:self.navigationController.view ];
+//    [actionSheet rotateToCurrentOrientation];
+    [actionSheet  showInView:_navigationController.view ];
     self.actionSheet = actionSheet;
 }
 
@@ -234,10 +250,12 @@
     NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showGridController:(MWGridViewController*)gridController{
+    _gridViewController = gridController;
     return YES;
 }
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideGridController:(MWGridViewController*)gridController{
+    _gridViewController = nil;
     return YES;
 }
 
@@ -253,5 +271,9 @@
     [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
 //    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
     return YES;
+}
+
+-(BOOL) photoBrowserSelectionMode{
+    return _browser.displaySelectionButtons;
 }
 @end
