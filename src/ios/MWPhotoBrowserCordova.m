@@ -15,8 +15,8 @@
 #import <Cordova/CDVPlugin+Resources.h>
 // #import <Cordova/CDVDebug.h>
 #import "XFDialogBuilder.h"
-
-
+#define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
+#define OPTIONS_UIIMAGE [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"]]
 @implementation MWPhotoBrowserCordova
 @synthesize callbackId = _callbackId;
 @synthesize callbackIds = _callbackIds;
@@ -28,6 +28,7 @@
 @synthesize navigationController = _navigationController;
 @synthesize albumName = _albumName;
 @synthesize gridViewController = _gridViewController;
+@synthesize rightBarbuttonItem = _rightBarbuttonItem;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
         _callbackIds = [[NSMutableDictionary alloc] init];
@@ -47,11 +48,20 @@
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
     _data = [options objectForKey:@"data"];
     _albumName = [options objectForKey:@"albumName"];
+    NSArray *captions = [options objectForKey:@"captions"];
     
     //    NSLog(@"data %@",_data);
     for (NSString* url in [options objectForKey:@"images"])
     {
         [images addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
+    }
+    if(captions != nil){
+        if([captions count] == [images count] ){
+            [images enumerateObjectsUsingBlock:^(MWPhoto*  _Nonnull photo, NSUInteger idx, BOOL * _Nonnull stop) {
+                photo.caption = [captions objectAtIndex:idx];
+            }];
+        }
+        
     }
     for (NSString* url in [options objectForKey:@"thumbnails"])
     {
@@ -84,13 +94,11 @@
     
     UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:browser];
     _navigationController = nc;
-    NSString* resourceIdentifier = [NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"];
     
-    [UIImage imageNamed:resourceIdentifier];
-    
-    UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithImage: [UIImage imageNamed:resourceIdentifier] style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
+    UIBarButtonItem *newBackButton = [[UIBarButtonItem alloc] initWithImage: OPTIONS_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(home:)];
+    newBackButton.tag = 0;
     browser.navigationItem.rightBarButtonItem = newBackButton;
-    
+    _rightBarbuttonItem = newBackButton;
     
     _navigationController.delegate = self;
     
@@ -116,75 +124,133 @@
 
 -(void)home:(UIBarButtonItem *)sender
 {
-    //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-    __weak MWPhotoBrowserCordova *weakSelf = self;
-    IBActionSheet *actionSheet = [[IBActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)
-                                                             callback:^(IBActionSheet *actionSheet, NSInteger buttonIndex) {
-                                                                 if(buttonIndex > 0 &&buttonIndex < actionSheet.numberOfButtons){
-                                                                     
-                                                                     NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
-                                                                     NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-                                                                     IBActionSheetButton * button = [actionSheet.buttons objectAtIndex:buttonIndex];
-                                                                     [dictionary setValue: button.currentTitle forKey:@"title"];
-                                                                     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: dictionary];
-                                                                     [self.commandDelegate sendPluginResult:result callbackId:_callbackId];
-                                                                     
-                                                                     [self buildDialogWithTitle:@"Test" text:@"Test content"];
-                                                                 }
-                                                                 else if(buttonIndex == 0){
-                                                                     if(!_browser.displaySelectionButtons){
-                                                                         _browser.displaySelectionButtons = YES;
-                                                                         [_browser reloadData];
+    if(sender.tag == 0){
+        
+        //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        __weak MWPhotoBrowserCordova *weakSelf = self;
+        IBActionSheet *actionSheet = [[IBActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)
+                                                                 callback:^(IBActionSheet *actionSheet, NSInteger buttonIndex) {
+                                                                     if(buttonIndex == 0){
+                                                                         if(!_browser.displaySelectionButtons){
+                                                                             _browser.displaySelectionButtons = YES;
+                                                                             [_browser reloadData];
+                                                                             sender.tag = 1;
+                                                                             [sender setImage:nil];
+                                                                             [sender setTitle:NSLocalizedString(@"Cancel", nil)];
+                                                                         }
+                                                                         
+                                                                     }else if (buttonIndex == 1){
+                                                                         [weakSelf popupTextAreaDialog];
+                                                                     }else if(buttonIndex > 0 &&buttonIndex < actionSheet.numberOfButtons){
+                                                                         
+                                                                         NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
+                                                                         NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+                                                                         IBActionSheetButton * button = [actionSheet.buttons objectAtIndex:buttonIndex];
+                                                                         [dictionary setValue: button.currentTitle forKey:@"title"];
+                                                                         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary: dictionary];
+                                                                         [weakSelf.commandDelegate sendPluginResult:result callbackId:_callbackId];
+                                                                         
+                                                                         [weakSelf buildDialogWithTitle:@"Test" text:@"Test content"];
+                                                                     }else if(buttonIndex == NSNotFound){
+                                                                         [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
                                                                      }
+//                                                                     else{
+//                                                                         
+//                                                                         [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
+//                                                                         if(_browser.displaySelectionButtons){
+//                                                                             _browser.displaySelectionButtons = NO;
+//                                                                             [_browser reloadData];
+//                                                                         }
+//                                                                         //                                                                     if(_gridController != nil){
+//                                                                         //                                                                     [_gridController  reloadData];
+//                                                                         //                                                                     }
+//                                                                         
+//                                                                     }
+                                                                 }
+                                                        cancelButtonTitle:nil
+                                                   destructiveButtonTitle:nil
+                                                        otherButtonTitles:nil, nil];
+        
+        [actionSheet addButtonWithTitle:NSLocalizedString(@"Select Photos", nil)];
+        [actionSheet addButtonWithTitle:NSLocalizedString(@"Add Album to Playlist", nil)];
+        [actionSheet addButtonWithTitle:NSLocalizedString(@"Edit Album Name", nil)];
+        [actionSheet addButtonWithTitle:NSLocalizedString(@"Delete Album", nil)];
+        [actionSheet setTitleTextColor:[UIColor blackColor]];
+        //    [actionSheet rotateToCurrentOrientation];
+        [actionSheet  showInView:_navigationController.view ];
+        self.actionSheet = actionSheet;
+    }else{
+        
+        if(_browser.displaySelectionButtons){
+            _browser.displaySelectionButtons = NO;
+            _browser.displayActionButton = NO;
+            [_browser reloadData];
+            sender.tag = 0;
+            [sender setImage:OPTIONS_UIIMAGE];
+            [sender setTitle:nil];
+        }
 
-//                                                                     if(_gridController != nil){
-//                                                                         [_gridController reloadData];
-                                                                     
-//                                                                     }
-                                                                     
-                                                                 }else{
-                                                                     
-                                                                     [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
-                                                                     if(_browser.displaySelectionButtons){
-                                                                         _browser.displaySelectionButtons = NO;
-                                                                         [_browser reloadData];
-                                                                     }
-//                                                                     if(_gridController != nil){
-//                                                                     [_gridController  reloadData];
-//                                                                     }
-                                                                     
-                                                                 }
-                                                             }
-                                                    cancelButtonTitle:nil
-                                               destructiveButtonTitle:nil
-                                                    otherButtonTitles:nil, nil];
-    
-    [actionSheet addButtonWithTitle:NSLocalizedString(@"Select Photos", nil)];
-    [actionSheet addButtonWithTitle:NSLocalizedString(@"Add Album to Playlist", nil)];
-    [actionSheet addButtonWithTitle:NSLocalizedString(@"Edit Album Name", nil)];
-    [actionSheet addButtonWithTitle:NSLocalizedString(@"Delete Album", nil)];
-    [actionSheet setTitleTextColor:[UIColor blackColor]];
-//    [actionSheet rotateToCurrentOrientation];
-    [actionSheet  showInView:_navigationController.view ];
-    self.actionSheet = actionSheet;
+    }
 }
 
 -(void) buildDialogWithTitle:(NSString*) title text:(NSString*)text {
     __weak MWPhotoBrowserCordova *weakSelf = self;
+    
     self.dialogView =
     [[[XFDialogNotice dialogWithTitle:title
                                 attrs:@{
-                                        XFDialogTitleViewBackgroundColor : [UIColor grayColor],
+                                        XFDialogTitleViewBackgroundColor : [UIColor whiteColor],
+                                        XFDialogTitleColor: [UIColor blackColor],
                                         XFDialogNoticeText:text,
-                                        XFDialogLineColor : [UIColor darkGrayColor],
+                                        XFDialogLineColor : LIGHT_BLUE_COLOR,
+                                        XFDialogCancelButtonTitle: NSLocalizedString(@"Cancel", nil),
+                                        XFDialogCommitButtonTitle: NSLocalizedString(@"Confirm", nil),
+                                        XFDialogCommitButtonTitleColor:LIGHT_BLUE_COLOR
                                         }
                        commitCallBack:^(NSString *inputText) {
                            [weakSelf.dialogView hideWithAnimationBlock:nil];
                        }] showWithAnimationBlock:nil] setCancelCallBack:^{
                            
                        }];
+    
+    [self.dialogView setCancelCallBack:^{
+    }];
 
 }
+
+- (void)popupTextAreaDialog {
+    
+    __weak MWPhotoBrowserCordova *weakSelf = self;
+    self.dialogView =
+    [[XFDialogTextArea dialogWithTitle:@"Edit Album Name"
+                                 attrs:@{
+                                         XFDialogTitleViewBackgroundColor : [UIColor whiteColor],
+                                         XFDialogTitleColor: [UIColor blackColor],
+                                         XFDialogTitleFontSize: @(14.f),
+                                         XFDialogTitleAlignment: @(NSTextAlignmentLeft),
+                                         XFDialogTitleIsMultiLine: @(YES),
+                                         XFDialogTextAreaMargin: @(12.f),
+                                         XFDialogTextAreaHeight: @(32.0f),
+                                         XFDialogTextAreaPlaceholderKey: NSLocalizedString(@"Album Name", nil),
+                                         XFDialogTextAreaPlaceholderColorKey: [UIColor grayColor],
+                                         XFDialogTextAreaHintColor: [UIColor grayColor],
+                                         XFDialogLineColor: [UIColor grayColor],
+                                         XFDialogTextAreaFontSize: @(15),
+                                         XFDialogCancelButtonTitle: NSLocalizedString(@"Cancel", nil),
+                                         XFDialogCommitButtonTitle: NSLocalizedString(@"Confirm", nil)
+                                         }
+                        commitCallBack:^(NSString *inputText) {
+                            [weakSelf.dialogView hideWithAnimationBlock:nil];
+//                            [XFUITool showToastWithTitle:[NSString stringWithFormat:@"输入的内容是: %@",inputText] complete:nil];
+                        }
+                         errorCallBack:^(NSString *errorMessage) {
+                             
+                         }] showWithAnimationBlock:nil];
+    [self.dialogView setCancelCallBack:^{
+//        NSLog(@"用户取消输入！");
+    }];
+}
+
 -(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
     if(_actionSheet != nil)
         [_actionSheet rotateToCurrentOrientation];
@@ -251,11 +317,19 @@
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showGridController:(MWGridViewController*)gridController{
     _gridViewController = gridController;
+    if(_rightBarbuttonItem != nil){
+        photoBrowser.navigationItem.rightBarButtonItem = _rightBarbuttonItem;
+        [photoBrowser.navigationItem.rightBarButtonItem setAction:@selector(home:)];
+        [photoBrowser.navigationItem.rightBarButtonItem setTarget:self];
+    }
     return YES;
 }
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideGridController:(MWGridViewController*)gridController{
     _gridViewController = nil;
+//    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
+    photoBrowser.navigationItem.rightBarButtonItem = nil;
+    
     return YES;
 }
 

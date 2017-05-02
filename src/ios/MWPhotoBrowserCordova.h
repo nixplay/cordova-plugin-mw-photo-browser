@@ -28,6 +28,7 @@
 @property (nonatomic, retain) IBActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;
 @property (nonatomic, weak) XFDialogFrame *dialogView;
+@property (nonatomic, weak) UIBarButtonItem *rightBarbuttonItem;
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
 @end
