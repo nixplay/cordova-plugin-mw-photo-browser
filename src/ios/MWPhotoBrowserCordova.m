@@ -9,11 +9,11 @@
 #import "MWPhotoBrowserCordova.h"
 #import "MWPhotoBrowser.h"
 #import "MWGridViewController.h"
+#import "TextInputViewController.h"
 #import <Cordova/CDVViewController.h>
 #import "IBActionSheet.h"
 #import "UIImage+MWPhotoBrowser.h"
 #import <Cordova/CDVPlugin+Resources.h>
-
 #import <PopupDialog/PopupDialog-Swift.h>
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
 #define OPTIONS_UIIMAGE [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"]]
@@ -209,7 +209,8 @@
     DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
         
     }];
-    
+    [ok setBackgroundColor:LIGHT_BLUE_COLOR];
+    [ok setTitleColor:[UIColor whiteColor]];
     [popup addButtons: @[cancel, ok]];
     _dialogView = popup;
     [_browser.navigationController presentViewController:popup animated:YES completion:nil];
@@ -219,12 +220,12 @@
 - (void)popupTextAreaDialog {
     
     
-    UIViewController* textViewVC = [[UIViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
+    __block TextInputViewController* textViewVC = [[TextInputViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
+    //[textViewVC.textInputField setPlaceholder:NSLocalizedString(@"Album Name", nil)];
+    //[textViewVC.titleLabel setText:NSLocalizedString(@"Edit Album name", nil)];
 //    [textViewVC.view setBackgroundColor:[UIColor whiteColor]];
 //    [textViewVC.view setFrame: CGRectMake(0, 0, 290, 182)];
-    UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(75, 25, 138, 19.5)];
-    [label setText:NSLocalizedString(@"Edit album name", nil)];
-    [textViewVC.view addSubview:label];
+    
 //    UITextField *textField = [[UITextField alloc]initWithFrame:CGRectMake(51, 82, 198, 35.5)];
 //    [textViewVC.view addSubview:textField];
     __weak MWPhotoBrowserCordova *weakSelf = self;
@@ -266,10 +267,15 @@
     DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
         
     }];
+    [ok setTitleColor:[UIColor whiteColor]];
+    [ok setBackgroundColor:LIGHT_BLUE_COLOR];
     
     [popup addButtons: @[cancel, ok]];
     _dialogView = popup;
-    [_browser.navigationController presentViewController:popup animated:YES completion:nil];
+    [_browser.navigationController presentViewController:popup animated:YES completion:^{
+//        [textViewVC.textInputField setPlaceholder:NSLocalizedString(@"Album Name", nil)];
+//        [textViewVC.titleLabel setText:NSLocalizedString(@"Edit Album name", nil)];
+    }];
 }
 
 -(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
@@ -360,15 +366,19 @@
     //    navBar.tintColor = [UIColor whiteColor];
     //    navBar.barTintColor = nil;
 //    navigationBar.shadowImage = nil;
-//    navigationBar.translucent = NO;
+    
     photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
+    navigationBar.translucent = NO;
     [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
 //    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
     return YES;
 }
 
 -(BOOL) photoBrowserSelectionMode{
+    return _browser.displaySelectionButtons;
+}
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide{
     return _browser.displaySelectionButtons;
 }
 @end
