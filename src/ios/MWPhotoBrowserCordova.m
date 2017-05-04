@@ -133,27 +133,21 @@
                                     NSLocalizedString(@"Add Album to Playlist", nil),
                                     NSLocalizedString(@"Edit Album Name", nil),
                                     NSLocalizedString(@"Delete Album", nil), nil];
-//        AHKActionSheet *actionSheet = [[AHKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)];
+        //        AHKActionSheet *actionSheet = [[AHKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)];
         
         MKActionSheet *sheet = [[MKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil) buttonTitleArray:titles selectType:MKActionSheetSelectType_common];
-        sheet.titleColor = [UIColor greenColor];
-        sheet.titleFont = [UIFont boldSystemFontOfSize:24];
+        sheet.titleColor = [UIColor grayColor];
         sheet.titleAlignment = NSTextAlignmentLeft;
-        sheet.buttonTitleColor = [UIColor redColor];
-        sheet.buttonTitleFont = [UIFont boldSystemFontOfSize:14];
+        sheet.buttonTitleColor = [UIColor blackColor];
         sheet.buttonOpacity = 1;
-        sheet.buttonHeight = 40.0f;
         sheet.buttonTitleAlignment = MKActionSheetButtonTitleAlignment_left;
-        sheet.destructiveButtonTitleColor = [UIColor grayColor];
-        sheet.destructiveButtonIndex = 2;
-        sheet.cancelTitle = @"关闭";
         sheet.animationDuration = 0.2f;
         sheet.blurOpacity = 0.7f;
         sheet.blackgroundOpacity = 0.6f;
-        sheet.needCancelButton = YES;
+        sheet.needCancelButton = NO;
         sheet.maxShowButtonCount = 5.6;
-        sheet.separatorLeftMargin = 20;
-
+        sheet.separatorLeftMargin = 0;
+        
         [sheet showWithBlock:^(MKActionSheet *actionSheet, NSInteger buttonIndex) {
             switch(buttonIndex){
                 case 0:
@@ -184,11 +178,11 @@
                     break;
                     
             }
-
+            
         }];
-
         
-              self.actionSheet = sheet;
+        
+        self.actionSheet = sheet;
     }else{
         
         if(_browser.displaySelectionButtons){
@@ -199,7 +193,7 @@
             [sender setImage:OPTIONS_UIIMAGE];
             [sender setTitle:nil];
         }
-
+        
     }
 }
 
@@ -224,7 +218,7 @@
     [popup addButtons: @[cancel, ok]];
     _dialogView = popup;
     [_browser.navigationController presentViewController:popup animated:YES completion:nil];
-
+    
 }
 
 - (void)popupTextAreaDialog {
@@ -233,9 +227,9 @@
     __block TextInputViewController* textViewVC = [[TextInputViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
     
     __weak MWPhotoBrowserCordova *weakSelf = self;
-     PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleBounceUp gestureDismissal:YES completion:^{
-    
-     }];
+    PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleBounceUp gestureDismissal:YES completion:^{
+        
+    }];
     CancelButton *cancel = [[CancelButton alloc]initWithTitle:NSLocalizedString(@"Cancel", nil) height:60 dismissOnTap:YES action:^{
         
     }];
@@ -249,13 +243,13 @@
     [popup addButtons: @[cancel, ok]];
     _dialogView = popup;
     [_browser.navigationController presentViewController:popup animated:YES completion:^{
-
+        
     }];
 }
 
 -(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
-//    if(_actionSheet != nil)
-//        [_actionSheet rotateToCurrentOrientation];
+    //    if(_actionSheet != nil)
+    //        [_actionSheet rotateToCurrentOrientation];
 }
 
 // -(void)action:(UIBarButtonItem *)sender
@@ -329,7 +323,7 @@
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideGridController:(MWGridViewController*)gridController{
     _gridViewController = nil;
-//    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
+    //    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
     photoBrowser.navigationItem.rightBarButtonItem = nil;
     
     return YES;
@@ -340,13 +334,13 @@
     //    UINavigationBar *navBar = self.navigationController.navigationBar;
     //    navBar.tintColor = [UIColor whiteColor];
     //    navBar.barTintColor = nil;
-//    navigationBar.shadowImage = nil;
+    //    navigationBar.shadowImage = nil;
     [photoBrowser.navigationController setNavigationBarHidden:NO animated:NO];
     photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
     navigationBar.translucent = YES;
-//    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-//    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
+    //    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+    //    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
     return YES;
 }
 
