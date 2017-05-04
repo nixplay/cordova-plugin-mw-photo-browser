@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
 #import "MWPhotoBrowser.h"
-#import "IBActionSheet.h"
+#import "MKActionSheet.h"
 #import <PopupDialog/PopupDialog-Swift.h>
 @interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate> {
 
@@ -25,7 +25,7 @@
 @property (nonatomic, retain) UINavigationController *navigationController;
 @property (nonatomic, retain) MWGridViewController* gridViewController;
 @property (nonatomic, retain) MWPhotoBrowser *browser;
-@property (nonatomic, retain) IBActionSheet *actionSheet;
+@property (nonatomic, retain) MKActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;
 @property (nonatomic, weak) PopupDialog *dialogView;
 @property (nonatomic, weak) UIBarButtonItem *rightBarbuttonItem;
