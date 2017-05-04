@@ -13,8 +13,8 @@
 #import "IBActionSheet.h"
 #import "UIImage+MWPhotoBrowser.h"
 #import <Cordova/CDVPlugin+Resources.h>
-// #import <Cordova/CDVDebug.h>
-#import "XFDialogBuilder.h"
+
+#import <PopupDialog/PopupDialog-Swift.h>
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
 #define OPTIONS_UIIMAGE [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"]]
 @implementation MWPhotoBrowserCordova
@@ -141,7 +141,7 @@
                                                                          
                                                                      }else if (buttonIndex == 1){
                                                                          [weakSelf popupTextAreaDialog];
-                                                                     }else if(buttonIndex > 0 &&buttonIndex < actionSheet.numberOfButtons){
+                                                                     }else if(buttonIndex > 0 && buttonIndex < actionSheet.numberOfButtons-1){
                                                                          
                                                                          NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
                                                                          NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
@@ -152,7 +152,7 @@
                                                                          
                                                                          [weakSelf buildDialogWithTitle:@"Test" text:@"Test content"];
                                                                      }else if(buttonIndex == NSNotFound){
-                                                                         [actionSheet dismissWithClickedButtonIndex:0 animated:NO];
+                                                                         [actionSheet dismissWithClickedButtonIndex:-1 animated:NO];
                                                                      }
 //                                                                     else{
 //                                                                         
@@ -167,7 +167,7 @@
 //                                                                         
 //                                                                     }
                                                                  }
-                                                        cancelButtonTitle:nil
+                                                        cancelButtonTitle:NSLocalizedString(@"Cancel",nil)
                                                    destructiveButtonTitle:nil
                                                         otherButtonTitles:nil, nil];
         
@@ -177,7 +177,7 @@
         [actionSheet addButtonWithTitle:NSLocalizedString(@"Delete Album", nil)];
         [actionSheet setTitleTextColor:[UIColor blackColor]];
         //    [actionSheet rotateToCurrentOrientation];
-        [actionSheet  showInView:_navigationController.view ];
+        [actionSheet  showInView:_browser.navigationController.view ];
         self.actionSheet = actionSheet;
     }else{
         
@@ -195,60 +195,58 @@
 
 -(void) buildDialogWithTitle:(NSString*) title text:(NSString*)text {
     __weak MWPhotoBrowserCordova *weakSelf = self;
-    
-    self.dialogView =
-    [[[XFDialogNotice dialogWithTitle:title
-                                attrs:@{
-                                        XFDialogTitleViewBackgroundColor : [UIColor whiteColor],
-                                        XFDialogTitleColor: [UIColor blackColor],
-                                        XFDialogNoticeText:text,
-                                        XFDialogLineColor : LIGHT_BLUE_COLOR,
-                                        XFDialogCancelButtonTitle: NSLocalizedString(@"Cancel", nil),
-                                        XFDialogCommitButtonTitle: NSLocalizedString(@"Confirm", nil),
-                                        XFDialogCommitButtonTitleColor:LIGHT_BLUE_COLOR
-                                        }
-                       commitCallBack:^(NSString *inputText) {
-                           [weakSelf.dialogView hideWithAnimationBlock:nil];
-                       }] showWithAnimationBlock:nil] setCancelCallBack:^{
-                           
-                       }];
-    
-    [self.dialogView setCancelCallBack:^{
+    PopupDialog *popup = [[PopupDialog alloc] initWithTitle:title
+                                                    message:text
+                                                      image:nil
+                                            buttonAlignment:UILayoutConstraintAxisHorizontal
+                                            transitionStyle:PopupDialogTransitionStyleBounceUp
+                                           gestureDismissal:YES
+                                                 completion:nil];
+    CancelButton *cancel = [[CancelButton alloc]initWithTitle:@"" height:32 dismissOnTap:YES action:^{
+        
     }];
+    
+    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:@"OK" height:32 dismissOnTap:YES action:^{
+        
+    }];
+    
+    [popup addButtons: @[cancel, ok]];
+    
+    [_browser.navigationController presentViewController:popup animated:YES completion:nil];
 
 }
 
 - (void)popupTextAreaDialog {
     
     __weak MWPhotoBrowserCordova *weakSelf = self;
-    self.dialogView =
-    [[XFDialogTextArea dialogWithTitle:@"Edit Album Name"
-                                 attrs:@{
-                                         XFDialogTitleViewBackgroundColor : [UIColor whiteColor],
-                                         XFDialogTitleColor: [UIColor blackColor],
-                                         XFDialogTitleFontSize: @(14.f),
-                                         XFDialogTitleAlignment: @(NSTextAlignmentLeft),
-                                         XFDialogTitleIsMultiLine: @(YES),
-                                         XFDialogTextAreaMargin: @(12.f),
-                                         XFDialogTextAreaHeight: @(32.0f),
-                                         XFDialogTextAreaPlaceholderKey: NSLocalizedString(@"Album Name", nil),
-                                         XFDialogTextAreaPlaceholderColorKey: [UIColor grayColor],
-                                         XFDialogTextAreaHintColor: [UIColor grayColor],
-                                         XFDialogLineColor: [UIColor grayColor],
-                                         XFDialogTextAreaFontSize: @(15),
-                                         XFDialogCancelButtonTitle: NSLocalizedString(@"Cancel", nil),
-                                         XFDialogCommitButtonTitle: NSLocalizedString(@"Confirm", nil)
-                                         }
-                        commitCallBack:^(NSString *inputText) {
-                            [weakSelf.dialogView hideWithAnimationBlock:nil];
-//                            [XFUITool showToastWithTitle:[NSString stringWithFormat:@"输入的内容是: %@",inputText] complete:nil];
-                        }
-                         errorCallBack:^(NSString *errorMessage) {
-                             
-                         }] showWithAnimationBlock:nil];
-    [self.dialogView setCancelCallBack:^{
-//        NSLog(@"用户取消输入！");
-    }];
+//    self.dialogView =
+//    [[XFDialogTextArea dialogWithTitle:@"Edit Album Name"
+//                                 attrs:@{
+//                                         XFDialogTitleViewBackgroundColor : [UIColor whiteColor],
+//                                         XFDialogTitleColor: [UIColor blackColor],
+//                                         XFDialogTitleFontSize: @(14.f),
+//                                         XFDialogTitleAlignment: @(NSTextAlignmentLeft),
+//                                         XFDialogTitleIsMultiLine: @(YES),
+//                                         XFDialogTextAreaMargin: @(12.f),
+//                                         XFDialogTextAreaHeight: @(32.0f),
+//                                         XFDialogTextAreaPlaceholderKey: NSLocalizedString(@"Album Name", nil),
+//                                         XFDialogTextAreaPlaceholderColorKey: [UIColor grayColor],
+//                                         XFDialogTextAreaHintColor: [UIColor grayColor],
+//                                         XFDialogLineColor: [UIColor grayColor],
+//                                         XFDialogTextAreaFontSize: @(15),
+//                                         XFDialogCancelButtonTitle: NSLocalizedString(@"Cancel", nil),
+//                                         XFDialogCommitButtonTitle: NSLocalizedString(@"Confirm", nil)
+//                                         }
+//                        commitCallBack:^(NSString *inputText) {
+//                            [weakSelf.dialogView hideWithAnimationBlock:nil];
+////                            [XFUITool showToastWithTitle:[NSString stringWithFormat:@"输入的内容是: %@",inputText] complete:nil];
+//                        }
+//                         errorCallBack:^(NSString *errorMessage) {
+//                             
+//                         }] showWithAnimationBlock:nil];
+//    [self.dialogView setCancelCallBack:^{
+////        NSLog(@"用户取消输入！");
+//    }];
 }
 
 -(void) onOrientationChanged:(UIInterfaceOrientation) orientation{

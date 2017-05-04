@@ -10,7 +10,7 @@
 #import <Cordova/CDVPlugin.h>
 #import "MWPhotoBrowser.h"
 #import "IBActionSheet.h"
-#import "XFDialogBuilder.h"
+#import <PopupDialog/PopupDialog-Swift.h>
 @interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate> {
 
     NSMutableDictionary* callbackIds;
@@ -27,7 +27,7 @@
 @property (nonatomic, retain) MWPhotoBrowser *browser;
 @property (nonatomic, retain) IBActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;
-@property (nonatomic, weak) XFDialogFrame *dialogView;
+@property (nonatomic, weak) PopupDialog *dialogView;
 @property (nonatomic, weak) UIBarButtonItem *rightBarbuttonItem;
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
