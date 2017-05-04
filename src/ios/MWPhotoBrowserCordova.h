@@ -15,6 +15,7 @@
 
     NSMutableDictionary* callbackIds;
     NSArray* photos;
+    NSMutableArray *_selections;
     
 }
 @property (copy)   NSString* callbackId;

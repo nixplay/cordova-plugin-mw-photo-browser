@@ -161,17 +161,21 @@
                     }
                 }
                     break;
-                case 1:
-                    [weakSelf buildDialogWithTitle:@"Add Album to playlist" text:@"add to?"];
+                case 1:{
+                    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
+                    [dictionary setValue:0000 forKey: @"albumId"];
+                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                }
                     break;
                 case 2:
                     [weakSelf popupTextAreaDialog];
                     break;
-                case 4:
-                {
+                case 4:{
                     //TODO transit to send playlist
                     NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
                     [dictionary setValue:0000 forKey: @"albumId"];
+                    [dictionary setValue:@"transitionTo" forKey: @"nixplay.home.photo-caption.photo-recipient"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                 }
@@ -244,11 +248,12 @@
         //TODO send result edit album name
         NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
         [dictionary setValue:0000 forKey: @"albumId"];
-        if( [textViewVC.textInputField.text isEqualToString:@""]){
+        if( ![textViewVC.textInputField.text isEqualToString:@""]){
             [dictionary setValue:textViewVC.textInputField.text forKey: @"albumName"];
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
         }
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+        
     }];
     [ok setTitleColor:[UIColor whiteColor]];
     [ok setBackgroundColor:LIGHT_BLUE_COLOR];
@@ -320,8 +325,11 @@
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser actionButtonPressedForPhotoAtIndex:(NSUInteger)index{
     NSLog(@"actionButtonPressedForPhotoAtIndex %lu", (unsigned long)index);
 }
-//- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser isPhotoSelectedAtIndex:(NSUInteger)index{}
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser isPhotoSelectedAtIndex:(NSUInteger)index{
+    return [[_selections objectAtIndex:index] boolValue];
+}
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index selectedChanged:(BOOL)selected{
+    [_selections replaceObjectAtIndex:index withObject:[NSNumber numberWithBool:selected]];
     NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showGridController:(MWGridViewController*)gridController{
@@ -362,5 +370,11 @@
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide{
     return !_browser.displaySelectionButtons;
+}
+
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser deletedPhoto:(NSArray*) deletedPhoto{
+    
+    NSLog(@"deletedPhoto %@",deletedPhoto);
+    return YES;
 }
 @end
