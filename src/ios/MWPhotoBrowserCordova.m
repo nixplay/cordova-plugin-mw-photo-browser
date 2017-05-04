@@ -168,7 +168,13 @@
                     [weakSelf popupTextAreaDialog];
                     break;
                 case 4:
-                    //TODO transi to send playlist
+                {
+                    //TODO transit to send playlist
+                    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
+                    [dictionary setValue:0000 forKey: @"albumId"];
+                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                }
                     break;
                 case NSNotFound:
                     
@@ -236,6 +242,13 @@
     
     DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
         //TODO send result edit album name
+        NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
+        [dictionary setValue:0000 forKey: @"albumId"];
+        if( [textViewVC.textInputField.text isEqualToString:@""]){
+            [dictionary setValue:textViewVC.textInputField.text forKey: @"albumName"];
+        }
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }];
     [ok setTitleColor:[UIColor whiteColor]];
     [ok setBackgroundColor:LIGHT_BLUE_COLOR];
