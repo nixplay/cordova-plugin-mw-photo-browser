@@ -139,9 +139,9 @@
                                                                              [sender setTitle:NSLocalizedString(@"Cancel", nil)];
                                                                          }
                                                                          
-                                                                     }else if (buttonIndex == 1){
+                                                                     }else if (buttonIndex == 2){
                                                                          [weakSelf popupTextAreaDialog];
-                                                                     }else if(buttonIndex > 0 && buttonIndex < actionSheet.numberOfButtons-1){
+                                                                     }else if(buttonIndex > 0 && buttonIndex < actionSheet.numberOfButtons){
                                                                          
                                                                          NSLog(@"actionSheet %@ %li",actionSheet , (long)buttonIndex);
                                                                          NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
@@ -167,7 +167,7 @@
 //                                                                         
 //                                                                     }
                                                                  }
-                                                        cancelButtonTitle:NSLocalizedString(@"Cancel",nil)
+                                                        cancelButtonTitle:nil
                                                    destructiveButtonTitle:nil
                                                         otherButtonTitles:nil, nil];
         
@@ -202,23 +202,35 @@
                                             transitionStyle:PopupDialogTransitionStyleBounceUp
                                            gestureDismissal:YES
                                                  completion:nil];
-    CancelButton *cancel = [[CancelButton alloc]initWithTitle:@"" height:32 dismissOnTap:YES action:^{
+    CancelButton *cancel = [[CancelButton alloc]initWithTitle:NSLocalizedString(@"Cancel", nil) height:60 dismissOnTap:YES action:^{
         
     }];
     
-    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:@"OK" height:32 dismissOnTap:YES action:^{
+    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
         
     }];
     
     [popup addButtons: @[cancel, ok]];
-    
+    _dialogView = popup;
     [_browser.navigationController presentViewController:popup animated:YES completion:nil];
 
 }
 
 - (void)popupTextAreaDialog {
     
+    
+    UIViewController* textViewVC = [[UIViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
+//    [textViewVC.view setBackgroundColor:[UIColor whiteColor]];
+//    [textViewVC.view setFrame: CGRectMake(0, 0, 290, 182)];
+    UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(75, 25, 138, 19.5)];
+    [label setText:NSLocalizedString(@"Edit album name", nil)];
+    [textViewVC.view addSubview:label];
+//    UITextField *textField = [[UITextField alloc]initWithFrame:CGRectMake(51, 82, 198, 35.5)];
+//    [textViewVC.view addSubview:textField];
     __weak MWPhotoBrowserCordova *weakSelf = self;
+     PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleBounceUp gestureDismissal:YES completion:^{
+    
+     }];
 //    self.dialogView =
 //    [[XFDialogTextArea dialogWithTitle:@"Edit Album Name"
 //                                 attrs:@{
@@ -247,6 +259,17 @@
 //    [self.dialogView setCancelCallBack:^{
 ////        NSLog(@"用户取消输入！");
 //    }];
+    CancelButton *cancel = [[CancelButton alloc]initWithTitle:NSLocalizedString(@"Cancel", nil) height:60 dismissOnTap:YES action:^{
+        
+    }];
+    
+    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
+        
+    }];
+    
+    [popup addButtons: @[cancel, ok]];
+    _dialogView = popup;
+    [_browser.navigationController presentViewController:popup animated:YES completion:nil];
 }
 
 -(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
