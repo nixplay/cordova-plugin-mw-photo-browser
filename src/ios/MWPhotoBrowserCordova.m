@@ -37,7 +37,7 @@
 }
 
 - (void)showGallery:(CDVInvokedUrlCommand*)command {
-    NSLog(@"showGalleryWith:%@", command.arguments);
+//    NSLog(@"showGalleryWith:%@", command.arguments);
     
     _callbackId = command.callbackId;
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
