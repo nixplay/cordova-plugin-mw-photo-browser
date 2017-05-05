@@ -163,7 +163,7 @@
                 }
                     break;
                 case 2:{
-                    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
+                    NSMutableDictionary *dictionary = [NSMutableDictionary new];
                     [dictionary setValue:0000 forKey: @"albumId"];
                     [dictionary setValue:@"add album to playlist" forKey: @"command"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
@@ -175,7 +175,7 @@
                     break;
                 case 4:{
                     //TODO transit to send playlist
-                    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
+                    NSMutableDictionary *dictionary = [NSMutableDictionary new];
                     [dictionary setValue:0000 forKey: @"albumId"];
                     [dictionary setValue:@"transitionTo" forKey: @"nixplay.home.photo-caption.photo-recipient"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
@@ -248,7 +248,7 @@
     
     DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
         //TODO send result edit album name
-        NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
+        NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:0000 forKey: @"albumId"];
         if( ![textViewVC.textInputField.text isEqualToString:@""]){
             [dictionary setValue:textViewVC.textInputField.text forKey: @"albumName"];
