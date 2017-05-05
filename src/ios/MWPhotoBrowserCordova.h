@@ -22,7 +22,7 @@
 @property (nonatomic, retain) NSMutableDictionary* callbackIds;
 @property (nonatomic, retain) NSArray *photos;
 @property (nonatomic, retain) NSArray *thumbs;
-@property (nonatomic, retain) NSDictionary *data;
+@property (nonatomic, retain) NSMutableArray *data;
 @property (nonatomic, retain) UINavigationController *navigationController;
 @property (nonatomic, retain) MWGridViewController* gridViewController;
 @property (nonatomic, retain) MWPhotoBrowser *browser;

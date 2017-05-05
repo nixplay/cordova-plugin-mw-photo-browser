@@ -177,7 +177,7 @@
                     [weakSelf popupTextAreaDialog];
                     break;
                 case 4:{
-                    [self buildDialogWithTitle:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
+                    [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
                         
                     }];
                     //TODO transit to send playlist
@@ -215,8 +215,14 @@
     }
 }
 
--(void) buildDialogWithTitle:(NSString*) title text:(NSString*)text action:(void (^ _Nullable)(void))action {
+-(void) buildDialogWithCancelText:(NSString*)cancelText confirmText:(NSString*)confirmtext title:(NSString*) title text:(NSString*)text action:(void (^ _Nullable)(void))action {
     __weak MWPhotoBrowserCordova *weakSelf = self;
+    PopupDialogDefaultView* dialogAppearance =  [PopupDialogDefaultView appearance];
+    dialogAppearance.titleTextAlignment     = NSTextAlignmentLeft;
+    dialogAppearance.messageTextAlignment   = NSTextAlignmentLeft;
+    dialogAppearance.titleFont              = [UIFont systemFontOfSize:24];
+    dialogAppearance.messageFont            =  [UIFont systemFontOfSize:16];
+    dialogAppearance.messageColor            =  [UIColor darkGrayColor];
     PopupDialog *popup = [[PopupDialog alloc] initWithTitle:title
                                                     message:text
                                                       image:nil
@@ -224,11 +230,12 @@
                                             transitionStyle:PopupDialogTransitionStyleFadeIn
                                            gestureDismissal:YES
                                                  completion:nil];
-    CancelButton *cancel = [[CancelButton alloc]initWithTitle:NSLocalizedString(@"Cancel", nil) height:60 dismissOnTap:YES action:^{
+    
+    CancelButton *cancel = [[CancelButton alloc]initWithTitle:cancelText height:60 dismissOnTap:YES action:^{
         
     }];
     
-    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:action];
+    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:confirmtext  height:60 dismissOnTap:YES action:action];
     [ok setBackgroundColor:LIGHT_BLUE_COLOR];
     [ok setTitleColor:[UIColor whiteColor]];
     [popup addButtons: @[cancel, ok]];
@@ -436,6 +443,23 @@
     return items;
 }
 -(void) deletePhoto:(id)sender{
+    
+    [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete photos", nil) text:NSLocalizedString(@"Are you sure you want to delete the selected photos? ", nil) action:^{
+        NSMutableArray *fetchArray = [NSMutableArray new];
+        [_selections enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            if([obj isEqual:@(YES)]){
+                [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:@"id"]];
+            }
+        }];
+        
+        NSMutableDictionary *dictionary = [NSMutableDictionary new];
+        [dictionary setValue:fetchArray forKey: @"photos"];
+        [dictionary setValue:0000 forKey: @"albumId"];
+        [dictionary setValue:@"delete photos from album" forKey: @"description"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+    }];
+    
     
 }
 -(void) add:(id)sender{
