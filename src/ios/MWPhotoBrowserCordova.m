@@ -68,7 +68,7 @@
         [thumbs addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
     }
     _selections = [NSMutableArray new];
-    for (int i = 0; i < self.photos.count; i++) {
+    for (int i = 0; i < images.count; i++) {
         [_selections addObject:[NSNumber numberWithBool:NO]];
     }
     self.photos = images;
@@ -410,13 +410,38 @@
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide{
     return !_browser.displaySelectionButtons;
 }
-
-- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser deletedPhoto:(NSArray*) deletedPhoto{
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser buildToolbarItems:(UIToolbar*)toolBar{
+    UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
+    fixedSpace.width = 32; // To balance action button
+    UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
     
-    [self buildDialogWithTitle:NSLocalizedString(@"Delete photos", nil)  text:NSLocalizedString(@"Are you sure you want to delete the selected photos?", nil) action:^{
-        
-    }];
-    NSLog(@"deletedPhoto %@",deletedPhoto);
-    return YES;
+    NSMutableArray *items = [[NSMutableArray alloc] init];
+    
+    
+    UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                                                         target:self action:@selector(deletePhoto:)];
+    
+    UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
+    
+    
+    [items addObject:deleteBarButton];
+    [items addObject:flexSpace];
+    [items addObject:sendtoBarButton];
+    [items addObject:flexSpace];
+    // Right - Action
+    UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+    if (actionButton ) {
+        [items addObject:actionButton];
+    }
+    return items;
+}
+-(void) deletePhoto:(id)sender{
+    
+}
+-(void) add:(id)sender{
+    
+}
+-(void) actionButtonPressed:(id)sender{
+    
 }
 @end
