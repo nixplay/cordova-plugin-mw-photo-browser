@@ -82,7 +82,7 @@
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate: self];
     _browser = browser;
     // Set options
-    browser.automaticallyAdjustsScrollViewInsets = YES; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+//    browser.automaticallyAdjustsScrollViewInsets = YES; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     browser.displayActionButton = NO; // Show action button to save, copy or email photos (defaults to NO)
     browser.startOnGrid = YES;
     browser.enableGrid = YES;
@@ -129,6 +129,7 @@
         //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
         __weak MWPhotoBrowserCordova *weakSelf = self;
         __block NSArray * titles = [NSArray arrayWithObjects:
+                                    NSLocalizedString(@"Add Photos", nil),
                                     NSLocalizedString(@"Select Photos", nil),
                                     NSLocalizedString(@"Add Album to Playlist", nil),
                                     NSLocalizedString(@"Edit Album Name", nil),
@@ -150,7 +151,7 @@
         
         [sheet showWithBlock:^(MKActionSheet *actionSheet, NSInteger buttonIndex) {
             switch(buttonIndex){
-                case 0:
+                case 1:
                 {
                     if(!_browser.displaySelectionButtons){
                         _browser.displaySelectionButtons = YES;
@@ -161,14 +162,15 @@
                     }
                 }
                     break;
-                case 1:{
+                case 2:{
                     NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithDictionary:_data];
                     [dictionary setValue:0000 forKey: @"albumId"];
+                    [dictionary setValue:@"add album to playlist" forKey: @"command"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                 }
                     break;
-                case 2:
+                case 3:
                     [weakSelf popupTextAreaDialog];
                     break;
                 case 4:{
@@ -213,7 +215,7 @@
                                                     message:text
                                                       image:nil
                                             buttonAlignment:UILayoutConstraintAxisHorizontal
-                                            transitionStyle:PopupDialogTransitionStyleBounceUp
+                                            transitionStyle:PopupDialogTransitionStyleFadeIn
                                            gestureDismissal:YES
                                                  completion:nil];
     CancelButton *cancel = [[CancelButton alloc]initWithTitle:NSLocalizedString(@"Cancel", nil) height:60 dismissOnTap:YES action:^{
@@ -237,7 +239,7 @@
     __block TextInputViewController* textViewVC = [[TextInputViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
     
     __weak MWPhotoBrowserCordova *weakSelf = self;
-    PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleBounceUp gestureDismissal:YES completion:^{
+    PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleFadeIn gestureDismissal:YES completion:^{
         
     }];
     CancelButton *cancel = [[CancelButton alloc]initWithTitle:NSLocalizedString(@"Cancel", nil) height:60 dismissOnTap:YES action:^{
@@ -352,17 +354,50 @@
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser setNavBarAppearance:(UINavigationBar *)navigationBar{
     
-    //    UINavigationBar *navBar = self.navigationController.navigationBar;
-    //    navBar.tintColor = [UIColor whiteColor];
-    //    navBar.barTintColor = nil;
-    //    navigationBar.shadowImage = nil;
     [photoBrowser.navigationController setNavigationBarHidden:NO animated:NO];
-    photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
+//    photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
     navigationBar.translucent = YES;
-    //    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-    //    [navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
+//    photoBrowser.navigationItem.prompt = @"145 Photos - 15 Nov 2016";
+    
+    photoBrowser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:@"145 Photos - 15 Nov 2016"];
+    
     return YES;
+}
+
+-(UIView*) setTitle:(NSString*)title subtitle:(NSString*)subtitle {
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,-5,0,0)];
+    
+    titleLabel.backgroundColor = [UIColor clearColor];
+    titleLabel.textColor = [UIColor grayColor];
+    titleLabel.font = [UIFont boldSystemFontOfSize: 17];
+    titleLabel.text = title;
+    [titleLabel sizeToFit];
+    
+    UILabel *subtitleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,18,0,0)];
+    subtitleLabel.backgroundColor = [UIColor clearColor];
+    subtitleLabel.textColor = [UIColor blackColor];
+    subtitleLabel.font = [UIFont systemFontOfSize:12];
+    subtitleLabel.text = subtitle;
+    [subtitleLabel sizeToFit];
+    
+    UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, fmax(titleLabel.frame.size.width, subtitleLabel.frame.size.width), 30)];
+    [titleView addSubview:titleLabel];
+    [titleView addSubview:subtitleLabel];
+    
+    float widthDiff = subtitleLabel.frame.size.width - titleLabel.frame.size.width;
+    
+    if (widthDiff > 0) {
+        CGRect frame = titleLabel.frame;
+        frame.origin.x = widthDiff / 2;
+        titleLabel.frame = CGRectIntegral(frame);
+    } else {
+        CGRect frame = subtitleLabel.frame;
+        frame.origin.x = fabsf(widthDiff) / 2;
+        titleLabel.frame = CGRectIntegral(frame);
+    }
+    
+    return titleView;
 }
 
 -(BOOL) photoBrowserSelectionMode{
