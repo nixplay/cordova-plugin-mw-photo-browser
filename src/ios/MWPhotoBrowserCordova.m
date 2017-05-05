@@ -407,7 +407,7 @@
 -(BOOL) photoBrowserSelectionMode{
     return _browser.displaySelectionButtons;
 }
--(BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide{
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide{
     return !_browser.displaySelectionButtons;
 }
 - (NSMutableArray*)photoBrowser:(MWPhotoBrowser *)photoBrowser buildToolbarItems:(UIToolbar*)toolBar{
