@@ -67,7 +67,10 @@
     {
         [thumbs addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
     }
-    
+    _selections = [NSMutableArray new];
+    for (int i = 0; i < self.photos.count; i++) {
+        [_selections addObject:[NSNumber numberWithBool:NO]];
+    }
     self.photos = images;
     if([thumbs count] == 0){
         self.thumbs = self.photos;
@@ -174,6 +177,9 @@
                     [weakSelf popupTextAreaDialog];
                     break;
                 case 4:{
+                    [self buildDialogWithTitle:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
+                        
+                    }];
                     //TODO transit to send playlist
                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
                     [dictionary setValue:0000 forKey: @"albumId"];
@@ -209,7 +215,7 @@
     }
 }
 
--(void) buildDialogWithTitle:(NSString*) title text:(NSString*)text {
+-(void) buildDialogWithTitle:(NSString*) title text:(NSString*)text action:(void (^ _Nullable)(void))action {
     __weak MWPhotoBrowserCordova *weakSelf = self;
     PopupDialog *popup = [[PopupDialog alloc] initWithTitle:title
                                                     message:text
@@ -222,9 +228,7 @@
         
     }];
     
-    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
-        
-    }];
+    DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:action];
     [ok setBackgroundColor:LIGHT_BLUE_COLOR];
     [ok setTitleColor:[UIColor whiteColor]];
     [popup addButtons: @[cancel, ok]];
@@ -409,6 +413,9 @@
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser deletedPhoto:(NSArray*) deletedPhoto{
     
+    [self buildDialogWithTitle:NSLocalizedString(@"Delete photos", nil)  text:NSLocalizedString(@"Are you sure you want to delete the selected photos?", nil) action:^{
+        
+    }];
     NSLog(@"deletedPhoto %@",deletedPhoto);
     return YES;
 }
