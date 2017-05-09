@@ -29,7 +29,7 @@
 @property (nonatomic, retain) MWPhotoBrowser *browser;
 @property (nonatomic, retain) MKActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;
-@property (nonatomic, weak) PopupDialog *dialogView;
+@property (nonatomic, retain) PopupDialog *dialogView;
 
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 

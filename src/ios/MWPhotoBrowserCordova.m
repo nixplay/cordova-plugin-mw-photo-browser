@@ -111,7 +111,7 @@
     transition.subtype = kCATransitionFromRight;
     [self.viewController.view.window.layer addAnimation:transition forKey:nil];
 //    __block UIView*  oldSuperView = _navigationController.view.subviews[0];
-    [self.viewController.view addSubview:_navigationController.view];
+//    [self.viewController.view addSubview:_navigationController.view];
     [self.viewController presentViewController:nc animated:NO completion:^{
         
     }];
@@ -121,7 +121,17 @@
 -(void)home:(UIBarButtonItem *)sender
 {
     if(sender.tag == 0){
-        
+        PopupDialogDefaultView* dialogAppearance =  [PopupDialogDefaultView appearance];
+        PopupDialogOverlayView* overlayAppearance =  [PopupDialogOverlayView appearance];
+        overlayAppearance.blurEnabled = NO;
+        overlayAppearance.blurRadius = 0;
+        overlayAppearance.opacity = 0.5;
+        dialogAppearance.titleTextAlignment     = NSTextAlignmentLeft;
+        dialogAppearance.messageTextAlignment   = NSTextAlignmentLeft;
+        dialogAppearance.titleFont              = [UIFont systemFontOfSize:20];
+        dialogAppearance.messageFont            =  [UIFont systemFontOfSize:16];
+        dialogAppearance.titleColor            =  [UIColor blackColor];
+        dialogAppearance.messageColor            =  [UIColor darkGrayColor];
         //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
         __weak MWPhotoBrowserCordova *weakSelf = self;
         __block NSArray * titles = [NSArray arrayWithObjects:
@@ -147,11 +157,14 @@
         
         [sheet showWithBlock:^(MKActionSheet *actionSheet, NSInteger buttonIndex) {
             switch(buttonIndex){
-                case 1:
-                {
+                case 0:{
+                }
+                break;
+                case 1:{
                     if(!_browser.displaySelectionButtons){
-                        _browser.displaySelectionButtons = YES;
-                        [_browser reloadData];
+                        _gridViewController.selectionMode = _browser.displaySelectionButtons = YES;
+                        [_gridViewController.collectionView reloadData];
+                        [_browser showToolBar];
                         sender.tag = 1;
                         [sender setImage:nil];
                         [sender setTitle:NSLocalizedString(@"Cancel", nil)];
@@ -197,9 +210,11 @@
     }else{
         
         if(_browser.displaySelectionButtons){
-            _browser.displaySelectionButtons = NO;
             _browser.displayActionButton = NO;
-            [_browser reloadData];
+            _gridViewController.selectionMode = _browser.displaySelectionButtons = NO;
+            [_gridViewController.collectionView reloadData];
+//            [_browser reloadData];
+            [_browser hideToolBar];
             sender.tag = 0;
             [sender setImage:OPTIONS_UIIMAGE];
             [sender setTitle:nil];
@@ -210,12 +225,8 @@
 
 -(void) buildDialogWithCancelText:(NSString*)cancelText confirmText:(NSString*)confirmtext title:(NSString*) title text:(NSString*)text action:(void (^ _Nullable)(void))action {
     __weak MWPhotoBrowserCordova *weakSelf = self;
-    PopupDialogDefaultView* dialogAppearance =  [PopupDialogDefaultView appearance];
-    dialogAppearance.titleTextAlignment     = NSTextAlignmentLeft;
-    dialogAppearance.messageTextAlignment   = NSTextAlignmentLeft;
-    dialogAppearance.titleFont              = [UIFont systemFontOfSize:24];
-    dialogAppearance.messageFont            =  [UIFont systemFontOfSize:16];
-    dialogAppearance.messageColor            =  [UIColor darkGrayColor];
+    
+    
     PopupDialog *popup = [[PopupDialog alloc] initWithTitle:title
                                                     message:text
                                                       image:nil
@@ -328,7 +339,7 @@
     transition.type = kCATransitionPush;
     transition.subtype = kCATransitionFromLeft;
     [browser.view.window.layer addAnimation:transition forKey:nil];
-    [_navigationController.view removeFromSuperview];
+//    [_navigationController.view removeFromSuperview];
     [browser dismissViewControllerAnimated:NO completion:^{
         
        
@@ -337,13 +348,12 @@
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
     if(flag){
-        _navigationController = nil;
         _photos = nil;
         _thumbs = nil;
         _data = nil;
         _navigationController = nil;
         _gridViewController = nil;
-        _browser = nil;
+//        _browser = nil;
         _actionSheet = nil;
         _albumName = nil;
         _dialogView = nil;
@@ -353,19 +363,24 @@
 //- (NSString *)photoBrowser:(MWPhotoBrowser *)photoBrowser titleForPhotoAtIndex:(NSUInteger)index{
 //}
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index{
+    _browser = photoBrowser;
     NSLog(@"didDisplayPhotoAtIndex %lu", (unsigned long)index);
 }
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser actionButtonPressedForPhotoAtIndex:(NSUInteger)index{
+    _browser = photoBrowser;
     NSLog(@"actionButtonPressedForPhotoAtIndex %lu", (unsigned long)index);
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser isPhotoSelectedAtIndex:(NSUInteger)index{
+    _browser = photoBrowser;
     return [[_selections objectAtIndex:index] boolValue];
 }
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index selectedChanged:(BOOL)selected{
+    _browser = photoBrowser;
     [_selections replaceObjectAtIndex:index withObject:[NSNumber numberWithBool:selected]];
     NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showGridController:(MWGridViewController*)gridController{
+    _browser = photoBrowser;
     _gridViewController = gridController;
     if(_rightBarbuttonItem != nil){
         photoBrowser.navigationItem.rightBarButtonItem = _rightBarbuttonItem;
@@ -377,6 +392,7 @@
 }
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideGridController:(MWGridViewController*)gridController{
+    _browser = photoBrowser;
     _gridViewController = nil;
     //    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
     photoBrowser.navigationItem.rightBarButtonItem = nil;
@@ -387,6 +403,7 @@
 
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser setNavBarAppearance:(UINavigationBar *)navigationBar{
     
+    _browser = photoBrowser;
     [photoBrowser.navigationController setNavigationBarHidden:NO animated:NO];
 //    photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
@@ -436,8 +453,9 @@
 -(BOOL) photoBrowserSelectionMode{
     return _browser.displaySelectionButtons;
 }
-- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide{
-    return !_browser.displaySelectionButtons;
+- (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideToolbar:(BOOL)hide {
+    _browser = photoBrowser;
+    return NO;
 }
 - (NSMutableArray*)photoBrowser:(MWPhotoBrowser *)photoBrowser buildToolbarItems:(UIToolbar*)toolBar{
     UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
