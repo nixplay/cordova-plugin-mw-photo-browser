@@ -16,6 +16,7 @@
     NSMutableDictionary* callbackIds;
     NSArray* photos;
     NSMutableArray *_selections;
+    UIBarButtonItem *_rightBarbuttonItem;
     
 }
 @property (copy)   NSString* callbackId;
@@ -29,7 +30,7 @@
 @property (nonatomic, retain) MKActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;
 @property (nonatomic, weak) PopupDialog *dialogView;
-@property (nonatomic, weak) UIBarButtonItem *rightBarbuttonItem;
+
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
 @end

@@ -28,7 +28,6 @@
 @synthesize navigationController = _navigationController;
 @synthesize albumName = _albumName;
 @synthesize gridViewController = _gridViewController;
-@synthesize rightBarbuttonItem = _rightBarbuttonItem;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
         _callbackIds = [[NSMutableDictionary alloc] init];
