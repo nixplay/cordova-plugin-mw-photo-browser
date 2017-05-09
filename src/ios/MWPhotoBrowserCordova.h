@@ -11,7 +11,7 @@
 #import "MWPhotoBrowser.h"
 #import "MKActionSheet.h"
 #import <PopupDialog/PopupDialog-Swift.h>
-@interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate> {
+@interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate > {
 
     NSMutableDictionary* callbackIds;
     NSArray* photos;

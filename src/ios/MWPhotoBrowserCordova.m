@@ -17,7 +17,7 @@
 #import <PopupDialog/PopupDialog-Swift.h>
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
 #define OPTIONS_UIIMAGE [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"]]
-@implementation MWPhotoBrowserCordova
+@implementation MWPhotoBrowserCordova 
 @synthesize callbackId = _callbackId;
 @synthesize callbackIds = _callbackIds;
 @synthesize photos = _photos;
@@ -105,23 +105,17 @@
     
     _navigationController.delegate = self;
     
-    CATransition *transition = [[CATransition alloc] init];
-    transition.duration = 0.35;
+    CATransition *transition = [CATransition animation];
+    transition.duration = 0.5;
+//    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
     transition.type = kCATransitionPush;
     transition.subtype = kCATransitionFromRight;
-    [self.viewController.view.window.layer addAnimation:transition forKey:kCATransition];
+    [self.viewController.view.window.layer addAnimation:transition forKey:nil];
+//    __block UIView*  oldSuperView = _navigationController.view.subviews[0];
+    [self.viewController.view addSubview:_navigationController.view];
     [self.viewController presentViewController:nc animated:NO completion:^{
         
     }];
-    //    [self.viewController presentViewController:nc animated:YES completion:nil];
-    
-    //[nc release];
-    
-    // Release
-    //[browser release];
-    //[images release];
-    
-    
     
 }
 
@@ -327,9 +321,36 @@
 }
 
 -(void) photoBrowserDidFinishModalPresentation:(MWPhotoBrowser*) browser{
-    [browser dismissViewControllerAnimated:YES completion:nil];
+    CATransition *transition = [CATransition animation];
+    
+    transition.duration = 0.5;
+//    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    transition.delegate = self;
+    transition.type = kCATransitionPush;
+    transition.subtype = kCATransitionFromLeft;
+    [browser.view.window.layer addAnimation:transition forKey:nil];
+    [_navigationController.view removeFromSuperview];
+    [browser dismissViewControllerAnimated:NO completion:^{
+        
+       
+    }];
 }
 
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
+    if(flag){
+        _navigationController = nil;
+        _photos = nil;
+        _thumbs = nil;
+        _data = nil;
+        _navigationController = nil;
+        _gridViewController = nil;
+        _browser = nil;
+        _actionSheet = nil;
+        _albumName = nil;
+        _dialogView = nil;
+        _rightBarbuttonItem = nil;
+    }
+}
 //- (NSString *)photoBrowser:(MWPhotoBrowser *)photoBrowser titleForPhotoAtIndex:(NSUInteger)index{
 //}
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index{
