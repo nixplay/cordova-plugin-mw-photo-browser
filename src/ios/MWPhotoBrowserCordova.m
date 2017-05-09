@@ -349,8 +349,9 @@
     _gridViewController = gridController;
     if(_rightBarbuttonItem != nil){
         photoBrowser.navigationItem.rightBarButtonItem = _rightBarbuttonItem;
-        [photoBrowser.navigationItem.rightBarButtonItem setAction:@selector(home:)];
-        [photoBrowser.navigationItem.rightBarButtonItem setTarget:self];
+        [_rightBarbuttonItem setAction:@selector(home:)];
+        [_rightBarbuttonItem setTarget:self];
+        photoBrowser.navigationController.navigationItem.rightBarButtonItem = _rightBarbuttonItem;
     }
     return YES;
 }
@@ -359,6 +360,7 @@
     _gridViewController = nil;
     //    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
     photoBrowser.navigationItem.rightBarButtonItem = nil;
+    photoBrowser.navigationController.navigationItem.rightBarButtonItem = nil;
     
     return YES;
 }
