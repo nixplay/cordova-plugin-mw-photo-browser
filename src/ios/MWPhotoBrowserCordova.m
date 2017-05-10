@@ -289,9 +289,9 @@
     
     
     __block TextInputViewController* textViewVC = [[TextInputViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
-    textViewVC.title = title;
-    textViewVC.message = message;
-    textViewVC.placeholder = placeholder;
+    textViewVC.titleString = title;
+    textViewVC.messageString = message;
+    textViewVC.placeholderString = placeholder;
     
     __weak MWPhotoBrowserCordova *weakSelf = self;
     PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleFadeIn gestureDismissal:YES completion:^{
