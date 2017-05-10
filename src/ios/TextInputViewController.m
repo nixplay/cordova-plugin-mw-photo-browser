@@ -14,23 +14,23 @@
 @implementation TextInputViewController
 @synthesize titleLabel = _titleLabel;
 @synthesize textInputField = _textInputField;
-@synthesize title = _title;
-@synthesize message = _message;
-@synthesize placeholder = _placeholder;
+@synthesize titleString = _titleString;
+@synthesize messageString = _messageString;
+@synthesize placeholderString = _placeholderString;
 - (void)viewDidLoad {
     [super viewDidLoad];
-    if(_title == nil || [_title isEqualToString:@""]){
-        _title = @"Default Title";
+    if(_titleString == nil || [_titleString isEqualToString:@""]){
+        _titleString = @"Default Title";
     }
-    if(_message == nil || [_message isEqualToString:@""]){
-        _message = @"Default Message";
+    if(_messageString == nil || [_messageString isEqualToString:@""]){
+        _messageString = @"Default Message";
     }
-    if(_placeholder == nil || [_placeholder isEqualToString:@""]){
-        _placeholder = @"Default PlaceHolder";
+    if(_placeholderString == nil || [_placeholderString isEqualToString:@""]){
+        _placeholderString = @"Default PlaceHolder";
     }
-    [_titleLabel setText:_title];
-    [_textInputField setText:_message];
-    [_textInputField setPlaceholder:_placeholder];
+    [_titleLabel setText:_titleString];
+    [_textInputField setText:_messageString];
+    [_textInputField setPlaceholder:_placeholderString];
     
     // Do any additional setup after loading the view from its nib.
 }

@@ -12,7 +12,7 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UITextField *textInputField;
-@property (nonatomic , retain) NSString *title;
-@property (nonatomic , retain) NSString *message;
-@property (nonatomic , retain) NSString *placeholder;
+@property (nonatomic , retain) NSString *titleString;
+@property (nonatomic , retain) NSString *messageString;
+@property (nonatomic , retain) NSString *placeholderString;
 @end
