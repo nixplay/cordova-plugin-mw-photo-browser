@@ -62,6 +62,23 @@
         }
         
     }
+#define DEBUG_CAPTION
+#ifdef DEBUG_CAPTION
+    else{
+        NSArray *tempCaption = [NSArray arrayWithObjects:
+                                @"Lorem https://github.com/mariohahn/MHVideoPhotoGallery ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.",
+                                @"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                                @"Flat White at Elliot's",
+                                @"Lorem https://github.com/mariohahn/MHVideoPhotoGallery ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.", @"Frosty walk", @"Jury's Inn", @"Heavy Rain",
+                                @"iPad Application Sketch Template v1", @"Grotto of the Madonna", nil];
+        [images enumerateObjectsUsingBlock:^(MWPhoto*  _Nonnull photo, NSUInteger idx, BOOL * _Nonnull stop) {
+            int lowerBound = 0;
+            int upperBound = (int)[tempCaption count] ;
+            int rndValue = lowerBound + arc4random() % (upperBound - lowerBound);
+            photo.caption = [tempCaption objectAtIndex:rndValue];
+        }];
+    }
+#endif
     for (NSString* url in [options objectForKey:@"thumbnails"])
     {
         [thumbs addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
@@ -174,24 +191,41 @@
                 case 2:{
                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
                     [dictionary setValue:0000 forKey: @"albumId"];
-                    [dictionary setValue:@"add album to playlist" forKey: @"command"];
+                    [dictionary setValue:@"add album to playlist" forKey: @"description"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                 }
                     break;
                 case 3:
-                    [weakSelf popupTextAreaDialog];
+                {
+                    //edit album name
+                    [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_albumName != nil || [_albumName isEqualToString:@""] ) ? _albumName : @"Albums") placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
+                        
+                        //TODO send result edit album name
+                        
+                        if( ![text isEqualToString:@""]){
+                            NSMutableDictionary *dictionary = [NSMutableDictionary new];
+                            [dictionary setValue:0000 forKey: @"albumId"];
+                            [dictionary setValue:text forKey: @"albumName"];
+                            [dictionary setValue:@"edit album name" forKey: @"description"];
+                            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                        }
+                        
+                    }];
+                }
                     break;
                 case 4:{
                     [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
-                        
+                        NSMutableDictionary *dictionary = [NSMutableDictionary new];
+                        [dictionary setValue:0000 forKey: @"albumId"];
+                        [dictionary setValue:@"transitionTo" forKey: @"nixplay.home.photo-caption.photo-recipient"];
+                        [dictionary setValue:@"delete album" forKey: @"description"];
+                        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                     }];
-                    //TODO transit to send playlist
-                    NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                    [dictionary setValue:0000 forKey: @"albumId"];
-                    [dictionary setValue:@"transitionTo" forKey: @"nixplay.home.photo-caption.photo-recipient"];
-                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-                    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                    
+                    
                 }
                     break;
                 case NSNotFound:
@@ -218,6 +252,9 @@
             sender.tag = 0;
             [sender setImage:OPTIONS_UIIMAGE];
             [sender setTitle:nil];
+            for (int i = 0; i < _selections.count; i++) {
+                [_selections replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:NO]];
+            }
         }
         
     }
@@ -248,10 +285,13 @@
     
 }
 
-- (void)popupTextAreaDialog {
+- (void)popupTextAreaDialogTitle:(NSString*)title message:(NSString*)message placeholder:(NSString*)placeholder action:(void (^ _Nullable)(NSString*))action{
     
     
     __block TextInputViewController* textViewVC = [[TextInputViewController alloc] initWithNibName:@"TextInputViewController" bundle:nil];
+    textViewVC.title = title;
+    textViewVC.message = message;
+    textViewVC.placeholder = placeholder;
     
     __weak MWPhotoBrowserCordova *weakSelf = self;
     PopupDialog *popup = [[PopupDialog alloc] initWithViewController:textViewVC buttonAlignment:UILayoutConstraintAxisHorizontal transitionStyle:PopupDialogTransitionStyleFadeIn gestureDismissal:YES completion:^{
@@ -262,15 +302,7 @@
     }];
     
     DefaultButton *ok = [[DefaultButton alloc]initWithTitle:NSLocalizedString(@"OK", nil)  height:60 dismissOnTap:YES action:^{
-        //TODO send result edit album name
-        NSMutableDictionary *dictionary = [NSMutableDictionary new];
-        [dictionary setValue:0000 forKey: @"albumId"];
-        if( ![textViewVC.textInputField.text isEqualToString:@""]){
-            [dictionary setValue:textViewVC.textInputField.text forKey: @"albumName"];
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        }
-        
+        action(textViewVC.textInputField.text);
     }];
     [ok setTitleColor:[UIColor whiteColor]];
     [ok setBackgroundColor:LIGHT_BLUE_COLOR];
@@ -353,7 +385,7 @@
         _data = nil;
         _navigationController = nil;
         _gridViewController = nil;
-//        _browser = nil;
+        _browser = nil;
         _actionSheet = nil;
         _albumName = nil;
         _dialogView = nil;
@@ -380,6 +412,7 @@
     NSLog(@"photoAtIndex %lu selectedChanged %i", (unsigned long)index , selected);
 }
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser showGridController:(MWGridViewController*)gridController{
+    [photoBrowser hideToolBar];
     _browser = photoBrowser;
     _gridViewController = gridController;
     if(_rightBarbuttonItem != nil){
@@ -397,7 +430,7 @@
     //    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
     photoBrowser.navigationItem.rightBarButtonItem = nil;
     photoBrowser.navigationController.navigationItem.rightBarButtonItem = nil;
-    
+    [photoBrowser showToolBar];
     return YES;
 }
 
@@ -458,40 +491,119 @@
     return NO;
 }
 - (NSMutableArray*)photoBrowser:(MWPhotoBrowser *)photoBrowser buildToolbarItems:(UIToolbar*)toolBar{
-    UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
-    fixedSpace.width = 32; // To balance action button
-    UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
-    
-    NSMutableArray *items = [[NSMutableArray alloc] init];
-    
-    
-    UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
-                                                                         target:self action:@selector(deletePhoto:)];
-    
-    UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
-    
-    
-    [items addObject:deleteBarButton];
-    [items addObject:flexSpace];
-    [items addObject:sendtoBarButton];
-    [items addObject:flexSpace];
-    // Right - Action
-    UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
-    if (actionButton ) {
-        [items addObject:actionButton];
+    if(_gridViewController != nil){
+        UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
+        fixedSpace.width = 32; // To balance action button
+        UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
+        
+        NSMutableArray *items = [[NSMutableArray alloc] init];
+        
+        
+        UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                                                                          target:self action:@selector(deletePhoto:)];
+        
+        UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
+        
+        
+        [items addObject:deleteBarButton];
+        [items addObject:flexSpace];
+        [items addObject:sendtoBarButton];
+        [items addObject:flexSpace];
+        // Right - Action
+        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+        if (actionButton ) {
+            [items addObject:actionButton];
+        }
+        return items;
+    }else{
+        UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
+        fixedSpace.width = 32; // To balance action button
+        UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
+        NSMutableArray *items = [[NSMutableArray alloc] init];
+        
+        UIBarButtonItem * downloadPhotoButton = [[UIBarButtonItem alloc] initWithTitle:@"Download" style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhoto:)];
+        
+        UIBarButtonItem * editCaption = [[UIBarButtonItem alloc] initWithTitle:@"Edit" style:UIBarButtonItemStylePlain target:self action:@selector(editCaption:)];
+        
+        [items addObject:downloadPhotoButton];
+        [items addObject:editCaption];
+        return items;
     }
-    return items;
+    
+    
 }
+
+-(void) downloadPhoto:(id)sender{
+    
+}
+-(void) editCaption:(UIBarButtonItem*)sender{
+    if(sender.tag == 0){
+        sender.tag = 1;
+        if(_browser != nil){
+            _browser.alwaysShowControls = YES;
+        }
+        if(_textView == nil){
+            float height = self.navigationController.view.frame.size.height*(1/6);
+            float y = self.navigationController.view.frame.size.height - height;
+            _textView = [[UITextView alloc ] initWithFrame:CGRectMake(0, y, self.navigationController.view.frame.size.width, height)];
+            _textView.backgroundColor = [UIColor blackColor];
+            _textView.textColor = [UIColor whiteColor];
+            
+            
+        }
+        __block MWPhoto *photo = [self.photos objectAtIndex:[_browser currentIndex]];
+        __block NSInteger idx = [_browser currentIndex];
+        _textView.text = photo.caption;
+        [self.navigationController.view addSubview:_textView];
+//        [self popupTextAreaDialogTitle:NSLocalizedString(@"Edit Photo caption", nil) message:((photo.caption != nil || [photo.caption isEqualToString:@""] ) ? photo.caption : @"Albums") placeholder:NSLocalizedString(@"photo caption", nil) action:^(NSString *text) {
+//            if(![text isEqualToString:@""] && ![text isEqualToString:photo.caption]){
+//                [photo setCaption:text];
+//                [self.photos replaceObjectAtIndex:idx withObject:photo];
+//                [_browser setCurrentPhotoIndex:idx];
+//                //TODO save adn submit caption
+//            }
+//        }];
+    }else{
+        sender.tag = 0;
+        _browser.alwaysShowControls = NO;
+        if(_textView){
+            [_textView removeFromSuperview];
+        }
+    }
+}
+
 -(void) deletePhoto:(id)sender{
     
     [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete photos", nil) text:NSLocalizedString(@"Are you sure you want to delete the selected photos? ", nil) action:^{
         NSMutableArray *fetchArray = [NSMutableArray new];
-        [_selections enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            if([obj isEqual:@(YES)]){
+#define DEBUG
+#ifdef DEBUG
+        NSMutableArray* tempPhotos = [NSMutableArray arrayWithArray:self.photos];
+        NSMutableArray* tempThumbs = [NSMutableArray arrayWithArray:self.thumbs];
+        NSMutableArray* tempSelections = [NSMutableArray arrayWithArray:_selections];
+#endif
+//        for(int idx = 0; idx < _selections.count ; idx++){
+        [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            if([obj boolValue]){
+//            if([_selections objectAtIndex:idx]){
                 [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:@"id"]];
+
+#ifdef DEBUG
+                [tempPhotos removeObjectAtIndex:idx];
+                [tempThumbs removeObjectAtIndex:idx];
+                [tempSelections removeObjectAtIndex:idx];
+#endif
             }
         }];
+//        }
+     
+#ifdef DEBUG
+        self.photos = tempPhotos;
+        self.thumbs = tempThumbs;
+        _selections = tempSelections;
         
+        [_browser reloadData];
+#endif
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:fetchArray forKey: @"photos"];
         [dictionary setValue:0000 forKey: @"albumId"];

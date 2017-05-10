@@ -17,11 +17,12 @@
     NSArray* photos;
     NSMutableArray *_selections;
     UIBarButtonItem *_rightBarbuttonItem;
+    UITextView *_textView;
     
 }
 @property (copy)   NSString* callbackId;
 @property (nonatomic, retain) NSMutableDictionary* callbackIds;
-@property (nonatomic, retain) NSArray *photos;
+@property (nonatomic, retain) NSMutableArray *photos;
 @property (nonatomic, retain) NSArray *thumbs;
 @property (nonatomic, retain) NSMutableArray *data;
 @property (nonatomic, retain) UINavigationController *navigationController;
