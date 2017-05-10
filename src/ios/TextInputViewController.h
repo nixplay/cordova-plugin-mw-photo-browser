@@ -9,7 +9,10 @@
 #import <UIKit/UIKit.h>
 
 @interface TextInputViewController : UIViewController
+
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UITextField *textInputField;
-
+@property (nonatomic , retain) NSString *title;
+@property (nonatomic , retain) NSString *message;
+@property (nonatomic , retain) NSString *placeholder;
 @end
