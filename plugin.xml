@@ -28,6 +28,7 @@
     <pod name="SDWebImage" version="3.7.5"/>
     <pod name="MKActionSheet" />
     <pod name="PopupDialog" version="0.5.4"/>
+    <pod name="IQKeyboardManager"/>
     <resource-file src="src/ios/MWPhotoBrowserCordova.bundle" />
     <resource-file src="src/ios/TextInputViewController.xib" />
   </platform>
