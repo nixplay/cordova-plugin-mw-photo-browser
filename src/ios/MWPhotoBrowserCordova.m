@@ -202,8 +202,8 @@
                     break;
                 case 2:{
                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
-//                    [dictionary setValue:@"deleteAlbum" forKey: KEY_ACTION];
-                    [dictionary setValue:_albumId forKey: @"albumId"];
+                    [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
+                    [dictionary setValue:@(_albumId) forKey: @"albumId"];
                     [dictionary setValue:@"add album to playlist" forKey: @"description"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -218,7 +218,8 @@
                         
                         if( ![text isEqualToString:@""]){
                             NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                            [dictionary setValue:0000 forKey: @"albumId"];
+                            
+                            [dictionary setValue:@(_albumId) forKey: @"albumId"];
                             [dictionary setValue:text forKey: @"albumName"];
                             [dictionary setValue:@"edit album name" forKey: @"description"];
                             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
