@@ -72,7 +72,7 @@
         }
         
     }
-#define DEBUG_CAPTION
+//#define DEBUG_CAPTION
 #ifdef DEBUG_CAPTION
     else{
         NSArray *tempCaption = [NSArray arrayWithObjects:
@@ -692,6 +692,14 @@
     
     [_browser reloadData];
     [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:0];
+    NSMutableDictionary *dictionary = [NSMutableDictionary new];
+    [dictionary setValue:[_data objectAtIndex:_browser.currentIndex] forKey: @"photo"];
+    [dictionary setValue:[[photos objectAtIndex:_browser.currentIndex] caption] forKey: @"caption"];
+    [dictionary setValue:@"editCaption" forKey: KEY_ACTION];
+    [dictionary setValue:@(_albumId) forKey: @"albumId"];
+    [dictionary setValue:@"edit caption of photo" forKey: @"description"];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
 }
 -(CGRect) newRectFromTextView:(UITextView*) inTextView{
     float labelPadding = 10;
