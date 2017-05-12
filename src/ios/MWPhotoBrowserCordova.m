@@ -218,7 +218,7 @@
                         
                         if( ![text isEqualToString:@""]){
                             NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                            
+                            [dictionary setValue:@"editAlbumName" forKey: KEY_ACTION];
                             [dictionary setValue:@(_albumId) forKey: @"albumId"];
                             [dictionary setValue:text forKey: @"albumName"];
                             [dictionary setValue:@"edit album name" forKey: @"description"];
@@ -717,7 +717,8 @@
         [_browser reloadData];
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:targetPhoto forKey: @"photo"];
-        [dictionary setValue:0000 forKey: @"albumId"];
+        [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
+        [dictionary setValue:@(_albumId) forKey: @"albumId"];
         [dictionary setValue:@"delete photo from album" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -758,7 +759,8 @@
 #endif
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:fetchArray forKey: @"photos"];
-        [dictionary setValue:0000 forKey: @"albumId"];
+        [dictionary setValue:@"deletePhotos" forKey: KEY_ACTION];
+        [dictionary setValue:@(_albumId) forKey: @"albumId"];
         [dictionary setValue:@"delete photos from album" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
