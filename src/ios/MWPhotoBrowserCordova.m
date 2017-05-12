@@ -50,16 +50,30 @@
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
     
     NSDictionary *options = [command.arguments objectAtIndex:0];
+    NSArray * imagesUrls = [[options objectForKey:@"images"] array];
+    _data = [options objectForKey:@"data"];
+    if(imagesUrls == nil || [imagesUrls count] <= 0 ){
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Argument \"images\" clould not be empty"];
+        [pluginResult setKeepCallbackAsBool:NO];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+        return;
+    }
+    if( _data == nil || [_data count] == 0 || [_data count] != [imagesUrls count] ){
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Argument \"data\" clould not be empty"];
+        [pluginResult setKeepCallbackAsBool:NO];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+        return;
+    }
     NSMutableArray *images = [[NSMutableArray alloc] init];
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
-    _data = [options objectForKey:@"data"];
+    
     _albumName = [options objectForKey:@"albumName"];
     _albumId = [[options objectForKey:@"albumId"] integerValue];
     NSArray *captions = [options objectForKey:@"captions"];
     
     //    NSLog(@"data %@",_data);
-    for (NSString* url in [options objectForKey:@"images"])
+    for (NSString* url in imagesUrls)
     {
         [images addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
     }
