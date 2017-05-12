@@ -15,8 +15,8 @@
 #import <IQKeyboardManager/IQTextView.h>
 @interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate, UITextViewDelegate> {
 
-    NSMutableDictionary* callbackIds;
-    NSArray* photos;
+    NSMutableDictionary* _callbackIds;
+
     NSMutableArray *_selections;
     UIBarButtonItem *_rightBarbuttonItem;
     IQTextView *_textView;
@@ -24,7 +24,6 @@
     
 }
 @property (copy)   NSString* callbackId;
-@property (nonatomic, retain) NSMutableDictionary* callbackIds;
 @property (nonatomic, retain) NSMutableArray *photos;
 @property (nonatomic, retain) NSArray *thumbs;
 @property (nonatomic, retain) NSMutableArray *data;

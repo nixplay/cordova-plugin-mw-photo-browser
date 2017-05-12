@@ -26,8 +26,7 @@
 #define KEY_ACTION  @"action"
 #define MAX_CHARACTER 160
 @implementation MWPhotoBrowserCordova 
-@synthesize callbackId = _callbackId;
-@synthesize callbackIds = _callbackIds;
+@synthesize callbackId;
 @synthesize photos = _photos;
 @synthesize thumbs = _thumbs;
 @synthesize browser = _browser;
@@ -47,7 +46,7 @@
 - (void)showGallery:(CDVInvokedUrlCommand*)command {
 //    NSLog(@"showGalleryWith:%@", command.arguments);
     
-    _callbackId = command.callbackId;
+    self.callbackId = command.callbackId;
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
     
     NSDictionary *options = [command.arguments objectAtIndex:0];
@@ -206,6 +205,7 @@
                     [dictionary setValue:@(_albumId) forKey: @"albumId"];
                     [dictionary setValue:@"add album to playlist" forKey: @"description"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                    [pluginResult setKeepCallbackAsBool:YES];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                 }
                     break;
@@ -223,6 +223,7 @@
                             [dictionary setValue:text forKey: @"albumName"];
                             [dictionary setValue:@"edit album name" forKey: @"description"];
                             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                            [pluginResult setKeepCallbackAsBool:YES];
                             [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                         }
                         
@@ -236,6 +237,7 @@
                         [dictionary setValue:@(_albumId) forKey: @"albumId"];
                         [dictionary setValue:@"delete album" forKey: @"description"];
                         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                        [pluginResult setKeepCallbackAsBool:YES];
                         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                     }];
                     
@@ -694,11 +696,12 @@
     [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:0];
     NSMutableDictionary *dictionary = [NSMutableDictionary new];
     [dictionary setValue:[_data objectAtIndex:_browser.currentIndex] forKey: @"photo"];
-    [dictionary setValue:[[photos objectAtIndex:_browser.currentIndex] caption] forKey: @"caption"];
+    [dictionary setValue:[[_photos objectAtIndex:_browser.currentIndex] caption] forKey: @"caption"];
     [dictionary setValue:@"editCaption" forKey: KEY_ACTION];
     [dictionary setValue:@(_albumId) forKey: @"albumId"];
     [dictionary setValue:@"edit caption of photo" forKey: @"description"];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+    [pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
 }
 -(CGRect) newRectFromTextView:(UITextView*) inTextView{
@@ -711,8 +714,8 @@
 }
 -(void) deletePhoto:(id)sender{
     [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete photos", nil) text:NSLocalizedString(@"Are you sure you want to delete the selected photos? ", nil) action:^{
-        NSMutableArray* tempPhotos = [NSMutableArray arrayWithArray:self.photos];
-        NSMutableArray* tempThumbs = [NSMutableArray arrayWithArray:self.thumbs];
+        NSMutableArray* tempPhotos = [NSMutableArray arrayWithArray:_photos];
+        NSMutableArray* tempThumbs = [NSMutableArray arrayWithArray:_thumbs];
         NSMutableArray* tempSelections = [NSMutableArray arrayWithArray:_selections];
         NSDictionary* targetPhoto = [_data objectAtIndex:_browser.currentIndex];
         [tempPhotos removeObjectAtIndex:_browser.currentIndex];
@@ -729,6 +732,7 @@
         [dictionary setValue:@(_albumId) forKey: @"albumId"];
         [dictionary setValue:@"delete photo from album" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [pluginResult setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }];
      
@@ -739,30 +743,33 @@
         NSMutableArray *fetchArray = [NSMutableArray new];
 #define DEBUG
 #ifdef DEBUG
-        NSMutableArray* tempPhotos = [NSMutableArray arrayWithArray:self.photos];
-        NSMutableArray* tempThumbs = [NSMutableArray arrayWithArray:self.thumbs];
-        NSMutableArray* tempSelections = [NSMutableArray arrayWithArray:_selections];
+        NSMutableArray* tempPhotos = [NSMutableArray new];
+        NSMutableArray* tempThumbs = [NSMutableArray new];
+        NSMutableArray* tempSelections = [NSMutableArray new];
+        NSMutableArray* tempData = [NSMutableArray new];
 #endif
-//        for(int idx = 0; idx < _selections.count ; idx++){
+
         [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
             if([obj boolValue]){
-//            if([_selections objectAtIndex:idx]){
                 [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:@"id"]];
 
 #ifdef DEBUG
-                [tempPhotos removeObjectAtIndex:idx];
-                [tempThumbs removeObjectAtIndex:idx];
-                [tempSelections removeObjectAtIndex:idx];
+                
 #endif
+            }else{
+                [tempPhotos addObject: [_photos objectAtIndex:idx]];
+                [tempThumbs addObject: [_thumbs objectAtIndex:idx]];
+                [tempSelections addObject: [_selections objectAtIndex:idx]];
+                [tempData addObject: [_data objectAtIndex:idx]];
             }
         }];
-//        }
-     
 #ifdef DEBUG
+        
         self.photos = tempPhotos;
         self.thumbs = tempThumbs;
         _selections = tempSelections;
-        
+        _data = tempData;
+        [_browser setCurrentPhotoIndex:0];
         [_browser reloadData];
 #endif
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
@@ -771,6 +778,7 @@
         [dictionary setValue:@(_albumId) forKey: @"albumId"];
         [dictionary setValue:@"delete photos from album" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [pluginResult setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }];
     
