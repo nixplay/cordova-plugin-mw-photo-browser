@@ -535,7 +535,7 @@
     navigationBar.translucent = YES;
 //    photoBrowser.navigationItem.prompt = @"145 Photos - 15 Nov 2016";
     
-    photoBrowser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:@"145 Photos - 15 Nov 2016"];
+    photoBrowser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
     
     return YES;
 }
@@ -726,6 +726,7 @@
         _selections = tempSelections;
         
         [_browser reloadData];
+        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:targetPhoto forKey: @"photo"];
         [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
@@ -771,6 +772,7 @@
         _data = tempData;
         [_browser setCurrentPhotoIndex:0];
         [_browser reloadData];
+        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
 #endif
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:fetchArray forKey: @"photos"];
