@@ -15,8 +15,15 @@
 #import "UIImage+MWPhotoBrowser.h"
 #import <Cordova/CDVPlugin+Resources.h>
 #import <PopupDialog/PopupDialog-Swift.h>
+#import <IQKeyboardManager/IQTextView.h>
+#import <IQKeyboardManager/IQUITextFieldView+Additions.h>
+#import <IQKeyboardManager/IQUIView+IQKeyboardToolbar.h>
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
-#define OPTIONS_UIIMAGE [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), @"images/options.png"]]
+#define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
+#define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
+#define DOWNLOADIMAGE_UIIMAGE BUNDLE_UIIMAGE(@"images/downloadCloud.png")
+#define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
+#define MAX_CHARACTER 160
 @implementation MWPhotoBrowserCordova 
 @synthesize callbackId = _callbackId;
 @synthesize callbackIds = _callbackIds;
@@ -28,6 +35,7 @@
 @synthesize navigationController = _navigationController;
 @synthesize albumName = _albumName;
 @synthesize gridViewController = _gridViewController;
+@synthesize toolBar = _toolBar;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
         _callbackIds = [[NSMutableDictionary alloc] init];
@@ -66,11 +74,13 @@
 #ifdef DEBUG_CAPTION
     else{
         NSArray *tempCaption = [NSArray arrayWithObjects:
-                                @"Lorem https://github.com/mariohahn/MHVideoPhotoGallery ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.",
-                                @"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                                @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in elit nullam.",
+                                @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec id bibendum justo, sed luctus lorem. Vestibulum euismod dolor in justo accumsan condimentum amet.",
                                 @"Flat White at Elliot's",
-                                @"Lorem https://github.com/mariohahn/MHVideoPhotoGallery ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.", @"Frosty walk", @"Jury's Inn", @"Heavy Rain",
-                                @"iPad Application Sketch Template v1", @"Grotto of the Madonna", nil];
+                                @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque auctor feugiat porttitor. In metus.",
+                                @"Jury's Inn",
+                                @"iPad Application Sketch Template v1",
+                                @"Grotto of the Madonna", nil];
         [images enumerateObjectsUsingBlock:^(MWPhoto*  _Nonnull photo, NSUInteger idx, BOOL * _Nonnull stop) {
             int lowerBound = 0;
             int upperBound = (int)[tempCaption count] ;
@@ -247,7 +257,7 @@
             _browser.displayActionButton = NO;
             _gridViewController.selectionMode = _browser.displaySelectionButtons = NO;
             [_gridViewController.collectionView reloadData];
-//            [_browser reloadData];
+            
             [_browser hideToolBar];
             sender.tag = 0;
             [sender setImage:OPTIONS_UIIMAGE];
@@ -326,6 +336,74 @@
 //     NSLog(@"action %@",sender);
 // }
 
+#pragma mark UITextViewDelegate
+
+
+-(void)textViewDidChange:(UITextView *)textView{
+    MWPhoto *photo = [self.photos objectAtIndex:_browser.currentIndex];
+    
+    [photo setCaption:textView.text];
+    [self.photos replaceObjectAtIndex:_browser.currentIndex withObject:photo];
+    
+}
+- (BOOL)textViewShouldEndEditing:(UITextView *)textView{
+    return YES;
+}
+-(void)textViewDidBeginEditing:(UITextView *)textView
+{
+    //    [self animatetextView:_textView up:YES keyboardFrameBeginRect:keyboardRect];
+    textView.backgroundColor = [UIColor whiteColor];
+    textView.textColor = [UIColor blackColor];
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView
+{
+    //    [self animatetextView:_textView up:YES keyboardFrameBeginRect:_keyboardRect];
+    //    [self animatetextView:textView up:NO :];
+    textView.backgroundColor = [UIColor blackColor];
+    textView.textColor = [UIColor whiteColor];
+    [self resignKeyboard:textView];
+    [self endEditCaption:textView];
+    
+}
+- (BOOL)textViewShouldReturn:(UITextView *)textView{
+    NSLog(@"textViewShouldReturn:");
+    if (textView.tag == 1) {
+        UITextView *textView = (UITextView *)[self.navigationController.view viewWithTag:2];
+        [textView becomeFirstResponder];
+    }
+    else {
+        
+//        [textView resignFirstResponder];
+        
+//        MWPhoto *photo = [self.photos objectAtIndex:_browser.currentIndex];
+//        
+//        [photo setCaption:textView.text];
+//        [self.photos replaceObjectAtIndex:_browser.currentIndex withObject:photo];
+        [self endEditCaption:textView];
+    }
+    return YES;
+}
+
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    // Prevent crashing undo bug – see note below.
+    IQTextView* iqTextView = (IQTextView*)textView;
+    iqTextView.shouldHidePlaceholderText = NO;
+    iqTextView.placeholderText = [NSString stringWithFormat:@"%lu/%d",(unsigned long)textView.text.length, MAX_CHARACTER];
+    
+    if(range.length + range.location > textView.text.length)
+    {
+        return NO;
+    }
+    if ([text isEqualToString:@"\n"]) {
+        [textView resignFirstResponder];
+        
+        return NO;
+    }
+    NSUInteger newLength = [textView.text length] + [text length] - range.length;
+    return newLength < MAX_CHARACTER;
+}
 
 #pragma mark - UINavigationControllerDelegate
 
@@ -359,6 +437,7 @@
 - (MWCaptionView *)photoBrowser:(MWPhotoBrowser *)photoBrowser captionViewForPhotoAtIndex:(NSUInteger)index {
     MWPhoto *photo = [self.photos objectAtIndex:index];
     MWCaptionView *captionView = [[MWCaptionView alloc] initWithPhoto:photo];
+    
     return captionView;
 }
 
@@ -397,6 +476,10 @@
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index{
     _browser = photoBrowser;
     NSLog(@"didDisplayPhotoAtIndex %lu", (unsigned long)index);
+    if(_textView.superview != nil){
+        _textView.text = [[self.photos objectAtIndex:index] caption];
+        [_textView setFrame:[self newRectFromTextView:_textView ]];
+    }
 }
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser actionButtonPressedForPhotoAtIndex:(NSUInteger)index{
     _browser = photoBrowser;
@@ -428,6 +511,9 @@
     _browser = photoBrowser;
     _gridViewController = nil;
     //    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
+    if(_textView != nil){
+        [_textView removeFromSuperview];
+    }
     photoBrowser.navigationItem.rightBarButtonItem = nil;
     photoBrowser.navigationController.navigationItem.rightBarButtonItem = nil;
     [photoBrowser showToolBar];
@@ -491,6 +577,7 @@
     return NO;
 }
 - (NSMutableArray*)photoBrowser:(MWPhotoBrowser *)photoBrowser buildToolbarItems:(UIToolbar*)toolBar{
+    _toolBar = toolBar;
     if(_gridViewController != nil){
         UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
         fixedSpace.width = 32; // To balance action button
@@ -500,7 +587,7 @@
         
         
         UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
-                                                                                          target:self action:@selector(deletePhoto:)];
+                                                                                          target:self action:@selector(deletePhotos:)];
         
         UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
         
@@ -521,12 +608,18 @@
         UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
         NSMutableArray *items = [[NSMutableArray alloc] init];
         
-        UIBarButtonItem * downloadPhotoButton = [[UIBarButtonItem alloc] initWithTitle:@"Download" style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhoto:)];
+        UIBarButtonItem * downloadPhotoButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhoto:)];
         
-        UIBarButtonItem * editCaption = [[UIBarButtonItem alloc] initWithTitle:@"Edit" style:UIBarButtonItemStylePlain target:self action:@selector(editCaption:)];
+        UIBarButtonItem * editCaption = [[UIBarButtonItem alloc] initWithImage:EDIT_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(beginEditCaption:)];
+        
+        UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(deletePhoto:)];
+        
         
         [items addObject:downloadPhotoButton];
+        [items addObject:flexSpace];
         [items addObject:editCaption];
+        [items addObject:flexSpace];
+        [items addObject:deleteBarButton];
         return items;
     }
     
@@ -536,43 +629,97 @@
 -(void) downloadPhoto:(id)sender{
     
 }
--(void) editCaption:(UIBarButtonItem*)sender{
-    if(sender.tag == 0){
-        sender.tag = 1;
+-(void) beginEditCaption:(UIBarButtonItem*)sender{
+    
+//    if(sender.tag == 0){
+//        sender.tag = 1;
         if(_browser != nil){
             _browser.alwaysShowControls = YES;
         }
         if(_textView == nil){
-            float height = self.navigationController.view.frame.size.height*(1/6);
-            float y = self.navigationController.view.frame.size.height - height;
-            _textView = [[UITextView alloc ] initWithFrame:CGRectMake(0, y, self.navigationController.view.frame.size.width, height)];
+            float height = self.navigationController.view.frame.size.height*(1.0f/6.0f);
+            float y = self.navigationController.view.frame.size.height - height ;
+            
+            _textView = [[IQTextView alloc ] initWithFrame:CGRectMake(0, y, self.navigationController.view.frame.size.width, height*.5)];
+            _textView.delegate = self;
             _textView.backgroundColor = [UIColor blackColor];
             _textView.textColor = [UIColor whiteColor];
-            
-            
+            _textView.font = [UIFont systemFontOfSize:17];
+            _textView.returnKeyType = UIReturnKeyDone;
+            [_textView addRightButtonOnKeyboardWithImage:EDIT_UIIMAGE target:self action:@selector(resignKeyboard:) shouldShowPlaceholder:nil];
+//            [_textView setCustomDoneTarget:self action:@selector(endEditCaption:)];
         }
+//        [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:(_toolBar != nil ) ? _toolBar.frame.size.height:0];
+//        [[IQKeyboardManager sharedManager] setToolbarDoneBarButtonItemText:@""];
         __block MWPhoto *photo = [self.photos objectAtIndex:[_browser currentIndex]];
-        __block NSInteger idx = [_browser currentIndex];
+
         _textView.text = photo.caption;
-        [self.navigationController.view addSubview:_textView];
-//        [self popupTextAreaDialogTitle:NSLocalizedString(@"Edit Photo caption", nil) message:((photo.caption != nil || [photo.caption isEqualToString:@""] ) ? photo.caption : @"Albums") placeholder:NSLocalizedString(@"photo caption", nil) action:^(NSString *text) {
-//            if(![text isEqualToString:@""] && ![text isEqualToString:photo.caption]){
-//                [photo setCaption:text];
-//                [self.photos replaceObjectAtIndex:idx withObject:photo];
-//                [_browser setCurrentPhotoIndex:idx];
-//                //TODO save adn submit caption
-//            }
-//        }];
-    }else{
-        sender.tag = 0;
-        _browser.alwaysShowControls = NO;
-        if(_textView){
-            [_textView removeFromSuperview];
-        }
-    }
+        
+        _textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin;
+        [_textView setFrame:[self newRectFromTextView:_textView ]];
+        [_browser.view addSubview:_textView];
+        [_textView becomeFirstResponder];
 }
 
+//    }else{
+//        sender.tag = 0;
+//        _browser.alwaysShowControls = NO;
+//        [[IQKeyboardManager sharedManager] setToolbarDoneBarButtonItemText:NSLocalizedString(@"Done",nil)];
+//        if(_textView){
+//            [[self.photos objectAtIndex:_browser.currentIndex] setCaption: _textView.text];
+////            [_browser reloadData];
+//            [_textView removeFromSuperview];
+//            [_textView resignFirstResponder];
+//            [_browser setCurrentPhotoIndex:_browser.currentIndex];
+//            [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:0];
+//        }
+//    }
+//}
+-(void) resignKeyboard:(id)sender{
+    if(_textView && _textView.superview != nil){
+        [_textView resignFirstResponder];
+        [_textView removeFromSuperview];
+    }
+}
+-(void) endEditCaption:(id)sender{
+    _browser.alwaysShowControls = NO;
+    [[self.photos objectAtIndex:_browser.currentIndex] setCaption: _textView.text];
+    
+    [_browser reloadData];
+    [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:0];
+}
+-(CGRect) newRectFromTextView:(UITextView*) inTextView{
+    float labelPadding = 10;
+    float newHeight =  MAX(MIN(5.0,(_textView.contentSize.height - _textView.textContainerInset.top - _textView.textContainerInset.bottom) / _textView.font.lineHeight), 2) *_textView.font.lineHeight ;
+    newHeight = MAX(newHeight , _toolBar.frame.size.height)  + labelPadding * 2;
+    CGRect originFrame = _textView.frame;
+    CGRect newFrame = CGRectMake( originFrame.origin.x, self.navigationController.view.frame.size.height - newHeight - _toolBar.frame.size.height, originFrame.size.width, newHeight);
+    return newFrame;
+}
 -(void) deletePhoto:(id)sender{
+    [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete photos", nil) text:NSLocalizedString(@"Are you sure you want to delete the selected photos? ", nil) action:^{
+        NSMutableArray* tempPhotos = [NSMutableArray arrayWithArray:self.photos];
+        NSMutableArray* tempThumbs = [NSMutableArray arrayWithArray:self.thumbs];
+        NSMutableArray* tempSelections = [NSMutableArray arrayWithArray:_selections];
+        NSDictionary* targetPhoto = [_data objectAtIndex:_browser.currentIndex];
+        [tempPhotos removeObjectAtIndex:_browser.currentIndex];
+        [tempThumbs removeObjectAtIndex:_browser.currentIndex];
+        [tempSelections removeObjectAtIndex:_browser.currentIndex];
+        self.photos = tempPhotos;
+        self.thumbs = tempThumbs;
+        _selections = tempSelections;
+        
+        [_browser reloadData];
+        NSMutableDictionary *dictionary = [NSMutableDictionary new];
+        [dictionary setValue:targetPhoto forKey: @"photo"];
+        [dictionary setValue:0000 forKey: @"albumId"];
+        [dictionary setValue:@"delete photo from album" forKey: @"description"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+    }];
+     
+}
+-(void) deletePhotos:(id)sender{
     
     [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete photos", nil) text:NSLocalizedString(@"Are you sure you want to delete the selected photos? ", nil) action:^{
         NSMutableArray *fetchArray = [NSMutableArray new];

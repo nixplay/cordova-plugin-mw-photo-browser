@@ -11,13 +11,15 @@
 #import "MWPhotoBrowser.h"
 #import "MKActionSheet.h"
 #import <PopupDialog/PopupDialog-Swift.h>
-@interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate > {
+#import <IQKeyboardManager/IQKeyboardManager.h>
+#import <IQKeyboardManager/IQTextView.h>
+@interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate, UITextViewDelegate> {
 
     NSMutableDictionary* callbackIds;
     NSArray* photos;
     NSMutableArray *_selections;
     UIBarButtonItem *_rightBarbuttonItem;
-    UITextView *_textView;
+    IQTextView *_textView;
     
 }
 @property (copy)   NSString* callbackId;
@@ -25,6 +27,7 @@
 @property (nonatomic, retain) NSMutableArray *photos;
 @property (nonatomic, retain) NSArray *thumbs;
 @property (nonatomic, retain) NSMutableArray *data;
+@property (nonatomic, retain) UIToolbar *toolBar;
 @property (nonatomic, retain) UINavigationController *navigationController;
 @property (nonatomic, retain) MWGridViewController* gridViewController;
 @property (nonatomic, retain) MWPhotoBrowser *browser;
