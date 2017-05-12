@@ -50,7 +50,7 @@
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
     
     NSDictionary *options = [command.arguments objectAtIndex:0];
-    NSArray * imagesUrls = [[options objectForKey:@"images"] array];
+    NSArray * imagesUrls = [options objectForKey:@"images"] ;
     _data = [options objectForKey:@"data"];
     if(imagesUrls == nil || [imagesUrls count] <= 0 ){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Argument \"images\" clould not be empty"];
