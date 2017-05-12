@@ -23,6 +23,7 @@
 #define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
 #define DOWNLOADIMAGE_UIIMAGE BUNDLE_UIIMAGE(@"images/downloadCloud.png")
 #define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
+#define KEY_ACTION  @"action"
 #define MAX_CHARACTER 160
 @implementation MWPhotoBrowserCordova 
 @synthesize callbackId = _callbackId;
@@ -55,6 +56,7 @@
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
     _data = [options objectForKey:@"data"];
     _albumName = [options objectForKey:@"albumName"];
+    _albumId = [[options objectForKey:@"albumId"] integerValue];
     NSArray *captions = [options objectForKey:@"captions"];
     
     //    NSLog(@"data %@",_data);
@@ -200,7 +202,8 @@
                     break;
                 case 2:{
                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                    [dictionary setValue:0000 forKey: @"albumId"];
+//                    [dictionary setValue:@"deleteAlbum" forKey: KEY_ACTION];
+                    [dictionary setValue:_albumId forKey: @"albumId"];
                     [dictionary setValue:@"add album to playlist" forKey: @"description"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -228,8 +231,8 @@
                 case 4:{
                     [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
                         NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                        [dictionary setValue:0000 forKey: @"albumId"];
-                        [dictionary setValue:@"transitionTo" forKey: @"nixplay.home.photo-caption.photo-recipient"];
+                        [dictionary setValue:@"deleteAlbum" forKey: KEY_ACTION];
+                        [dictionary setValue:@(_albumId) forKey: @"albumId"];
                         [dictionary setValue:@"delete album" forKey: @"description"];
                         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -647,6 +650,7 @@
             _textView.font = [UIFont systemFontOfSize:17];
             _textView.returnKeyType = UIReturnKeyDone;
             [_textView addRightButtonOnKeyboardWithImage:EDIT_UIIMAGE target:self action:@selector(resignKeyboard:) shouldShowPlaceholder:nil];
+            [[IQKeyboardManager sharedManager] preventShowingBottomBlankSpace];
 //            [_textView setCustomDoneTarget:self action:@selector(endEditCaption:)];
         }
 //        [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:(_toolBar != nil ) ? _toolBar.frame.size.height:0];

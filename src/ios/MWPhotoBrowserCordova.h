@@ -20,6 +20,7 @@
     NSMutableArray *_selections;
     UIBarButtonItem *_rightBarbuttonItem;
     IQTextView *_textView;
+    NSInteger _albumId;
     
 }
 @property (copy)   NSString* callbackId;
