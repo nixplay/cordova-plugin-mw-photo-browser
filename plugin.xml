@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
            id="com.wunwun.plugins.mw-photo-browser-cordova"
-      version="1.0.36">
+      version="1.0.37">
 
   <name>MWPhotoBrowserCordova</name>
   <author>Calvin Lai</author>
@@ -28,6 +28,8 @@
     <pod name="SDWebImage" version="3.7.5"/>
     <pod name="MKActionSheet" />
     <pod name="PopupDialog" version="0.5.4"/>
+    <pod name="IQKeyboardManager"/>
+    <pod name="MBProgressHUD"/>
     <pod name="IQKeyboardManager"/>
     <resource-file src="src/ios/MWPhotoBrowserCordova.bundle" />
     <resource-file src="src/ios/TextInputViewController.xib" />

@@ -19,6 +19,7 @@
 #import <IQKeyboardManager/IQUITextFieldView+Additions.h>
 #import <IQKeyboardManager/IQUIView+IQKeyboardToolbar.h>
 #import <SDWebImage/SDWebImageManager.h>
+#import <MBProgressHUD/MBProgressHUD.h>
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
 #define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
 #define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
@@ -625,14 +626,23 @@
     
     
 }
-
+-(void)onOrientationChanged:(id)orientation{
+    
+}
 -(void) downloadPhoto:(id)sender{
     //TODO save photo
+    __block MBProgressHUD *progressHUD = [MBProgressHUD showHUDAddedTo:self.viewController.view
+                                                      animated:YES];
+    progressHUD.mode = MBProgressHUDModeIndeterminate;
+    
+    progressHUD.label.text = NSLocalizedString(@"Downloading",nil);
+    [progressHUD showAnimated:YES];
     @try{
         NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
         [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-            
+            [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
         } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+            [progressHUD hideAnimated:YES];
             UIImageWriteToSavedPhotosAlbum(image, self, @selector(imageSavedToPhotosAlbum:didFinishSavingWithError:contextInfo:), nil);
         }];
         //download
