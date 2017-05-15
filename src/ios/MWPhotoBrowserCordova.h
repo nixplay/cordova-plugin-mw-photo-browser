@@ -16,11 +16,12 @@
 @interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate, UITextViewDelegate> {
 
     NSMutableDictionary* _callbackIds;
-
+    NSMutableDictionary* _actionSheetDicArray;
     NSMutableArray *_selections;
     UIBarButtonItem *_rightBarbuttonItem;
     IQTextView *_textView;
-    NSInteger _albumId;
+    NSInteger _id;
+    NSString *_type;
     
 }
 @property (copy)   NSString* callbackId;

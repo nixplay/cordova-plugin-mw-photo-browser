@@ -24,8 +24,15 @@
 #define DOWNLOADIMAGE_UIIMAGE BUNDLE_UIIMAGE(@"images/downloadCloud.png")
 #define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
 #define KEY_ACTION  @"action"
+#define KEY_LABEL  @"label"
+#define DEFAULT_ACTION_ADD @"add"
+#define DEFAULT_ACTION_SELECT @"select"
+#define DEFAULT_ACTION_ADDTOPLAYLIST @"addToPlaylist"
+#define DEFAULT_ACTION_RENAME @"rename"
+#define DEFAULT_ACTION_DELETE @"delete"
+
 #define MAX_CHARACTER 160
-@implementation MWPhotoBrowserCordova 
+@implementation MWPhotoBrowserCordova
 @synthesize callbackId;
 @synthesize photos = _photos;
 @synthesize thumbs = _thumbs;
@@ -44,7 +51,7 @@
 }
 
 - (void)showGallery:(CDVInvokedUrlCommand*)command {
-//    NSLog(@"showGalleryWith:%@", command.arguments);
+    //    NSLog(@"showGalleryWith:%@", command.arguments);
     
     self.callbackId = command.callbackId;
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
@@ -67,9 +74,10 @@
     NSMutableArray *images = [[NSMutableArray alloc] init];
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
-    
+    _actionSheetDicArray = [options objectForKey:@"actionSheet"];
     _albumName = [options objectForKey:@"albumName"];
-    _albumId = [[options objectForKey:@"albumId"] integerValue];
+    _id = [[options objectForKey:@"id"] integerValue];
+    _type = [options objectForKey:@"id"] ;
     NSArray *captions = [options objectForKey:@"captions"];
     
     //    NSLog(@"data %@",_data);
@@ -85,7 +93,7 @@
         }
         
     }
-//#define DEBUG_CAPTION
+    //#define DEBUG_CAPTION
 #ifdef DEBUG_CAPTION
     else{
         NSArray *tempCaption = [NSArray arrayWithObjects:
@@ -126,7 +134,7 @@
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate: self];
     _browser = browser;
     // Set options
-//    browser.automaticallyAdjustsScrollViewInsets = YES; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    //    browser.automaticallyAdjustsScrollViewInsets = YES; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     browser.displayActionButton = NO; // Show action button to save, copy or email photos (defaults to NO)
     browser.startOnGrid = YES;
     browser.enableGrid = YES;
@@ -148,12 +156,12 @@
     
     CATransition *transition = [CATransition animation];
     transition.duration = 0.5;
-//    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    //    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
     transition.type = kCATransitionPush;
     transition.subtype = kCATransitionFromRight;
     [self.viewController.view.window.layer addAnimation:transition forKey:nil];
-//    __block UIView*  oldSuperView = _navigationController.view.subviews[0];
-//    [self.viewController.view addSubview:_navigationController.view];
+    //    __block UIView*  oldSuperView = _navigationController.view.subviews[0];
+    //    [self.viewController.view addSubview:_navigationController.view];
     [self.viewController presentViewController:nc animated:NO completion:^{
         
     }];
@@ -176,13 +184,8 @@
         dialogAppearance.messageColor            =  [UIColor darkGrayColor];
         //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
         __weak MWPhotoBrowserCordova *weakSelf = self;
-        __block NSArray * titles = [NSArray arrayWithObjects:
-                                    NSLocalizedString(@"Add Photos", nil),
-                                    NSLocalizedString(@"Select Photos", nil),
-                                    NSLocalizedString(@"Add Album to Playlist", nil),
-                                    NSLocalizedString(@"Edit Album Name", nil),
-                                    NSLocalizedString(@"Delete Album", nil), nil];
-        //        AHKActionSheet *actionSheet = [[AHKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil)];
+        __block NSArray * titles =  [_actionSheetDicArray valueForKey:KEY_LABEL];
+        __block NSArray * actions =  [_actionSheetDicArray valueForKey:KEY_ACTION];
         
         MKActionSheet *sheet = [[MKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil) buttonTitleArray:titles selectType:MKActionSheetSelectType_common];
         sheet.titleColor = [UIColor grayColor];
@@ -198,74 +201,82 @@
         sheet.separatorLeftMargin = 0;
         
         [sheet showWithBlock:^(MKActionSheet *actionSheet, NSInteger buttonIndex) {
-            switch(buttonIndex){
-                case 0:{
+            
+            if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADD]){
+                NSMutableDictionary *dictionary = [NSMutableDictionary new];
+                [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
+                [dictionary setValue:@(_id) forKey: @"id"];
+                [dictionary setValue:_type forKey: @"type"];
+                [dictionary setValue:@"add photo to album" forKey: @"description"];
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                [pluginResult setKeepCallbackAsBool:NO];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                [self photoBrowserDidFinishModalPresentation:_browser];
+            }else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_SELECT]){
+                if(!_browser.displaySelectionButtons){
+                    _gridViewController.selectionMode = _browser.displaySelectionButtons = YES;
+                    [_gridViewController.collectionView reloadData];
+                    [_browser showToolBar];
+                    sender.tag = 1;
+                    [sender setImage:nil];
+                    [sender setTitle:NSLocalizedString(@"Cancel", nil)];
                 }
-                break;
-                case 1:{
-                    if(!_browser.displaySelectionButtons){
-                        _gridViewController.selectionMode = _browser.displaySelectionButtons = YES;
-                        [_gridViewController.collectionView reloadData];
-                        [_browser showToolBar];
-                        sender.tag = 1;
-                        [sender setImage:nil];
-                        [sender setTitle:NSLocalizedString(@"Cancel", nil)];
-                    }
-                }
-                    break;
-                case 2:{
-                    NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                    [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
-                    [dictionary setValue:@(_albumId) forKey: @"albumId"];
-                    [dictionary setValue:@"add album to playlist" forKey: @"description"];
-                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-                    [pluginResult setKeepCallbackAsBool:YES];
-                    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-                }
-                    break;
-                case 3:
-                {
-                    //edit album name
-                    [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_albumName != nil || [_albumName isEqualToString:@""] ) ? _albumName : @"Albums") placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
-                        
-                        //TODO send result edit album name
-                        
-                        if( ![text isEqualToString:@""]){
-                            NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                            [dictionary setValue:@"editAlbumName" forKey: KEY_ACTION];
-                            [dictionary setValue:@(_albumId) forKey: @"albumId"];
-                            [dictionary setValue:text forKey: @"albumName"];
-                            [dictionary setValue:@"edit album name" forKey: @"description"];
-                            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-                            [pluginResult setKeepCallbackAsBool:YES];
-                            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-                        }
-                        
-                    }];
-                }
-                    break;
-                case 4:{
-                    [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
+            }
+//            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADDTOPLAYLIST]){
+//                NSMutableDictionary *dictionary = [NSMutableDictionary new];
+//                [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
+//                [dictionary setValue:@(_id) forKey: @"id"];
+//                [dictionary setValue:_type forKey: @"type"];
+//                [dictionary setValue:@"add album to playlist" forKey: @"description"];
+//                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+//                [pluginResult setKeepCallbackAsBool:NO];
+//                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+//                [self photoBrowserDidFinishModalPresentation:_browser];
+//            }
+            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_RENAME]){
+                //edit album name
+                [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_albumName != nil || [_albumName isEqualToString:@""] ) ? _albumName : @"Albums") placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
+                    
+                    //TODO send result edit album name
+                    
+                    if( ![text isEqualToString:@""]){
                         NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                        [dictionary setValue:@"deleteAlbum" forKey: KEY_ACTION];
-                        [dictionary setValue:@(_albumId) forKey: @"albumId"];
-                        [dictionary setValue:@"delete album" forKey: @"description"];
+                        [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
+                        [dictionary setValue:@(_id) forKey: @"id"];
+                        [dictionary setValue:_type forKey: @"type"];
+                        [dictionary setValue:text forKey: @"albumName"];
+                        [dictionary setValue:@"edit album name" forKey: @"description"];
                         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                         [pluginResult setKeepCallbackAsBool:YES];
                         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-                    }];
+                    }
                     
+                }];
+            }else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_DELETE]){
+                [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
+                    NSMutableDictionary *dictionary = [NSMutableDictionary new];
+                    [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
+                    [dictionary setValue:@(_id) forKey: @"id"];
+                    [dictionary setValue:_type forKey: @"type"];
                     
-                }
-                    break;
-                case NSNotFound:
-                    
-                    break;
-                default:
-                    
-                    break;
-                    
+                    [dictionary setValue:@"delete album" forKey: @"description"];
+                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                    [pluginResult setKeepCallbackAsBool:YES];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                }];
+                
+                
+            }else{
+                NSMutableDictionary *dictionary = [NSMutableDictionary new];
+                [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
+                [dictionary setValue:@(_id) forKey: @"id"];
+                [dictionary setValue:_type forKey: @"type"];
+                [dictionary setValue:@"unhandled action	" forKey: @"description"];
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                [pluginResult setKeepCallbackAsBool:NO];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
             }
+            
             
         }];
         
@@ -344,17 +355,6 @@
     }];
 }
 
--(void) onOrientationChanged:(UIInterfaceOrientation) orientation{
-    //    if(_actionSheet != nil)
-    //        [_actionSheet rotateToCurrentOrientation];
-}
-
-// -(void)action:(UIBarButtonItem *)sender
-// {
-//     _browser.displaySelectionButtons = !_browser.displaySelectionButtons;
-//     [_browser setNeedsFocusUpdate];
-//     NSLog(@"action %@",sender);
-// }
 
 #pragma mark UITextViewDelegate
 
@@ -393,13 +393,6 @@
         [textView becomeFirstResponder];
     }
     else {
-        
-//        [textView resignFirstResponder];
-        
-//        MWPhoto *photo = [self.photos objectAtIndex:_browser.currentIndex];
-//        
-//        [photo setCaption:textView.text];
-//        [self.photos replaceObjectAtIndex:_browser.currentIndex withObject:photo];
         [self endEditCaption:textView];
     }
     return YES;
@@ -424,20 +417,6 @@
     NSUInteger newLength = [textView.text length] + [text length] - range.length;
     return newLength < MAX_CHARACTER;
 }
-
-#pragma mark - UINavigationControllerDelegate
-
-- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated{
-    if([viewController isKindOfClass:[MWPhotoBrowser class] ]){
-        // UIBarButtonItem *newActionButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"action", nil) style:UIBarButtonItemStylePlain target:self action:@selector(action:)];
-        // viewController.navigationItem.rightBarButtonItem = newActionButton;
-        
-    }
-    //else{
-    //        [self.viewController dismissViewControllerAnimated:YES completion:nil];
-    //    }
-}
-
 
 #pragma mark - MWPhotoBrowserDelegate
 
@@ -465,15 +444,13 @@
     CATransition *transition = [CATransition animation];
     
     transition.duration = 0.5;
-//    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
     transition.delegate = self;
     transition.type = kCATransitionPush;
     transition.subtype = kCATransitionFromLeft;
     [browser.view.window.layer addAnimation:transition forKey:nil];
-//    [_navigationController.view removeFromSuperview];
     [browser dismissViewControllerAnimated:NO completion:^{
         
-       
+        
     }];
 }
 
@@ -530,7 +507,7 @@
 - (BOOL)photoBrowser:(MWPhotoBrowser *)photoBrowser hideGridController:(MWGridViewController*)gridController{
     _browser = photoBrowser;
     _gridViewController = nil;
-    //    _rightBarbuttonItem = photoBrowser.navigationItem.rightBarButtonItem;
+    
     if(_textView != nil){
         [_textView removeFromSuperview];
     }
@@ -544,13 +521,9 @@
     
     _browser = photoBrowser;
     [photoBrowser.navigationController setNavigationBarHidden:NO animated:NO];
-//    photoBrowser.navigationItem.title = (_albumName != nil ) ? _albumName : @"Albums";
     navigationBar.barStyle = UIBarStyleDefault;
     navigationBar.translucent = YES;
-//    photoBrowser.navigationItem.prompt = @"145 Photos - 15 Nov 2016";
-    
-    photoBrowser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
-    
+    photoBrowser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : NSLocalizedString(@"Untitled",nil) subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
     return YES;
 }
 
@@ -651,51 +624,31 @@
 }
 -(void) beginEditCaption:(UIBarButtonItem*)sender{
     
-//    if(sender.tag == 0){
-//        sender.tag = 1;
-        if(_browser != nil){
-            _browser.alwaysShowControls = YES;
-        }
-        if(_textView == nil){
-            float height = self.navigationController.view.frame.size.height*(1.0f/6.0f);
-            float y = self.navigationController.view.frame.size.height - height ;
-            
-            _textView = [[IQTextView alloc ] initWithFrame:CGRectMake(0, y, self.navigationController.view.frame.size.width, height*.5)];
-            _textView.delegate = self;
-            _textView.backgroundColor = [UIColor blackColor];
-            _textView.textColor = [UIColor whiteColor];
-            _textView.font = [UIFont systemFontOfSize:17];
-            _textView.returnKeyType = UIReturnKeyDone;
-            [_textView addRightButtonOnKeyboardWithImage:EDIT_UIIMAGE target:self action:@selector(resignKeyboard:) shouldShowPlaceholder:nil];
-            [[IQKeyboardManager sharedManager] preventShowingBottomBlankSpace];
-//            [_textView setCustomDoneTarget:self action:@selector(endEditCaption:)];
-        }
-//        [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:(_toolBar != nil ) ? _toolBar.frame.size.height:0];
-//        [[IQKeyboardManager sharedManager] setToolbarDoneBarButtonItemText:@""];
-        __block MWPhoto *photo = [self.photos objectAtIndex:[_browser currentIndex]];
-
-        _textView.text = photo.caption;
+    if(_browser != nil){
+        _browser.alwaysShowControls = YES;
+    }
+    if(_textView == nil){
+        float height = self.navigationController.view.frame.size.height*(1.0f/6.0f);
+        float y = self.navigationController.view.frame.size.height - height ;
         
-        _textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin;
-        [_textView setFrame:[self newRectFromTextView:_textView ]];
-        [_browser.view addSubview:_textView];
-        [_textView becomeFirstResponder];
+        _textView = [[IQTextView alloc ] initWithFrame:CGRectMake(0, y, self.navigationController.view.frame.size.width, height*.5)];
+        _textView.delegate = self;
+        _textView.backgroundColor = [UIColor blackColor];
+        _textView.textColor = [UIColor whiteColor];
+        _textView.font = [UIFont systemFontOfSize:17];
+        _textView.returnKeyType = UIReturnKeyDone;
+        [_textView addRightButtonOnKeyboardWithImage:EDIT_UIIMAGE target:self action:@selector(resignKeyboard:) shouldShowPlaceholder:nil];
+        [[IQKeyboardManager sharedManager] preventShowingBottomBlankSpace];
+    }
+    __block MWPhoto *photo = [self.photos objectAtIndex:[_browser currentIndex]];
+    
+    _textView.text = photo.caption;
+    
+    _textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin;
+    [_textView setFrame:[self newRectFromTextView:_textView ]];
+    [_browser.view addSubview:_textView];
+    [_textView becomeFirstResponder];
 }
-
-//    }else{
-//        sender.tag = 0;
-//        _browser.alwaysShowControls = NO;
-//        [[IQKeyboardManager sharedManager] setToolbarDoneBarButtonItemText:NSLocalizedString(@"Done",nil)];
-//        if(_textView){
-//            [[self.photos objectAtIndex:_browser.currentIndex] setCaption: _textView.text];
-////            [_browser reloadData];
-//            [_textView removeFromSuperview];
-//            [_textView resignFirstResponder];
-//            [_browser setCurrentPhotoIndex:_browser.currentIndex];
-//            [[IQKeyboardManager sharedManager] setKeyboardDistanceFromTextField:0];
-//        }
-//    }
-//}
 -(void) resignKeyboard:(id)sender{
     if(_textView && _textView.superview != nil){
         [_textView resignFirstResponder];
@@ -712,7 +665,8 @@
     [dictionary setValue:[_data objectAtIndex:_browser.currentIndex] forKey: @"photo"];
     [dictionary setValue:[[_photos objectAtIndex:_browser.currentIndex] caption] forKey: @"caption"];
     [dictionary setValue:@"editCaption" forKey: KEY_ACTION];
-    [dictionary setValue:@(_albumId) forKey: @"albumId"];
+    [dictionary setValue:@(_id) forKey: @"id"];
+    [dictionary setValue:_type forKey: @"type"];
     [dictionary setValue:@"edit caption of photo" forKey: @"description"];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
     [pluginResult setKeepCallbackAsBool:YES];
@@ -740,17 +694,18 @@
         _selections = tempSelections;
         
         [_browser reloadData];
-        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
+        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName :NSLocalizedString(@"Untitled",nil) subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
-        [dictionary setValue:targetPhoto forKey: @"photo"];
+        [dictionary setValue:[targetPhoto valueForKey:@"id"] forKey: @"photo"];
         [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
-        [dictionary setValue:@(_albumId) forKey: @"albumId"];
+        [dictionary setValue:@(_id) forKey: @"id"];
+        [dictionary setValue:_type forKey: @"type"];
         [dictionary setValue:@"delete photo from album" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [pluginResult setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
     }];
-     
+    
 }
 -(void) deletePhotos:(id)sender{
     
@@ -763,11 +718,11 @@
         NSMutableArray* tempSelections = [NSMutableArray new];
         NSMutableArray* tempData = [NSMutableArray new];
 #endif
-
+        
         [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
             if([obj boolValue]){
                 [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:@"id"]];
-
+                
 #ifdef DEBUG
                 
 #endif
@@ -786,12 +741,13 @@
         _data = tempData;
         [_browser setCurrentPhotoIndex:0];
         [_browser reloadData];
-        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : @"Albums" subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
+        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : NSLocalizedString(@"Untitled",nil) subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
 #endif
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:fetchArray forKey: @"photos"];
         [dictionary setValue:@"deletePhotos" forKey: KEY_ACTION];
-        [dictionary setValue:@(_albumId) forKey: @"albumId"];
+        [dictionary setValue:@(_id) forKey: @"id"];
+        [dictionary setValue:_type forKey: @"type"];
         [dictionary setValue:@"delete photos from album" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [pluginResult setKeepCallbackAsBool:YES];
