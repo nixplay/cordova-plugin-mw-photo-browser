@@ -18,6 +18,7 @@
 #import <IQKeyboardManager/IQTextView.h>
 #import <IQKeyboardManager/IQUITextFieldView+Additions.h>
 #import <IQKeyboardManager/IQUIView+IQKeyboardToolbar.h>
+#import <SDWebImage/SDWebImageManager.h>
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
 #define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
 #define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
@@ -626,8 +627,39 @@
 }
 
 -(void) downloadPhoto:(id)sender{
-    
+    //TODO save photo
+    @try{
+        NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
+        [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+            
+        } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+            UIImageWriteToSavedPhotosAlbum(image, self, @selector(imageSavedToPhotosAlbum:didFinishSavingWithError:contextInfo:), nil);
+        }];
+        //download
+    }@catch(NSException * exception){
+        NSLog(@"%@", exception.description);
+    }
 }
+
+- (void) imageSavedToPhotosAlbum:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    NSString *message;
+    NSString *title;
+    if (!error) {
+        title = NSLocalizedString(@"Image Saved", @"");
+        message = NSLocalizedString(@"The image was placed in your photo album.", @"");
+    }
+    else {
+        title = NSLocalizedString(@"Error", @"");
+        message = [error description];
+    }
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                    message:message
+                                                   delegate:nil
+                                          cancelButtonTitle:@"OK"
+                                          otherButtonTitles:nil];
+    [alert show];
+}
+
 -(void) beginEditCaption:(UIBarButtonItem*)sender{
     
     if(_browser != nil){
@@ -707,7 +739,7 @@
         [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
         [dictionary setValue:@(_id) forKey: @"id"];
         [dictionary setValue:_type forKey: @"type"];
-        [dictionary setValue:@"delete photo from album" forKey: @"description"];
+        [dictionary setValue:@"delete photo" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [pluginResult setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
