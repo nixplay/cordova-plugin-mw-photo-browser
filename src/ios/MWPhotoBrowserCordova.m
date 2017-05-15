@@ -631,12 +631,13 @@
 }
 -(void) downloadPhoto:(id)sender{
     //TODO save photo
-    __block MBProgressHUD *progressHUD = [MBProgressHUD showHUDAddedTo:self.viewController.view
+    __block MBProgressHUD *progressHUD = [MBProgressHUD showHUDAddedTo:_browser.view
                                                       animated:YES];
-    progressHUD.mode = MBProgressHUDModeIndeterminate;
+    progressHUD.mode = MBProgressHUDModeDeterminate;
     
     progressHUD.label.text = NSLocalizedString(@"Downloading",nil);
     [progressHUD showAnimated:YES];
+    
     @try{
         NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
         [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
