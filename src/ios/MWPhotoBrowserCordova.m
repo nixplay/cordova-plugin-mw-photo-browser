@@ -33,8 +33,11 @@
 #define DEFAULT_ACTION_ADDTOPLAYLIST @"addToPlaylist"
 #define DEFAULT_ACTION_RENAME @"rename"
 #define DEFAULT_ACTION_DELETE @"delete"
-#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString]
+#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) ([_type isEqualToString:@"album"]) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil)]
 #define MAX_CHARACTER 160
+#define KEY_NAME @"name"
+#define KEY_ID @"id"
+#define KEY_TYPE @"type"
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 @implementation MWPhotoBrowserCordova
 @synthesize callbackId;
@@ -77,11 +80,11 @@
     }
     NSMutableArray *images = [[NSMutableArray alloc] init];
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
-    NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
+    NSUInteger photoIndex = 0;
     _actionSheetDicArray = [options objectForKey:@"actionSheet"];
-    _name = [options objectForKey:@"name"];
-    _id = [[options objectForKey:@"id"] integerValue];
-    _type = [options objectForKey:@"type"] ;
+    _name = [options objectForKey:KEY_NAME];
+    _id = [[options objectForKey:KEY_ID] integerValue];
+    _type = [options objectForKey:KEY_TYPE] ;
     NSArray *captions = [options objectForKey:@"captions"];
     _dateString = [options objectForKey:@"date"];
     if(_dateString == nil){
@@ -215,8 +218,8 @@
             if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADD]){
                 NSMutableDictionary *dictionary = [NSMutableDictionary new];
                 [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
-                [dictionary setValue:@(_id) forKey: @"id"];
-                [dictionary setValue:_type forKey: @"type"];
+                [dictionary setValue:@(_id) forKey: KEY_ID];
+                [dictionary setValue:_type forKey: KEY_TYPE];
                 [dictionary setValue:@"add photo to album" forKey: @"description"];
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                 [pluginResult setKeepCallbackAsBool:NO];
@@ -235,8 +238,8 @@
 //            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADDTOPLAYLIST]){
 //                NSMutableDictionary *dictionary = [NSMutableDictionary new];
 //                [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
-//                [dictionary setValue:@(_id) forKey: @"id"];
-//                [dictionary setValue:_type forKey: @"type"];
+//                [dictionary setValue:@(_id) forKey: KEY_ID];
+//                [dictionary setValue:_type forKey: KEY_TYPE];
 //                [dictionary setValue:@"add album to playlist" forKey: @"description"];
 //                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
 //                [pluginResult setKeepCallbackAsBool:NO];
@@ -252,9 +255,9 @@
                     if( ![text isEqualToString:@""]){
                         NSMutableDictionary *dictionary = [NSMutableDictionary new];
                         [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
-                        [dictionary setValue:@(_id) forKey: @"id"];
-                        [dictionary setValue:_type forKey: @"type"];
-                        [dictionary setValue:text forKey: @"albumName"];
+                        [dictionary setValue:@(_id) forKey: KEY_ID];
+                        [dictionary setValue:_type forKey: KEY_TYPE];
+                        [dictionary setValue:text forKey: KEY_NAME];
                         [dictionary setValue:@"edit album name" forKey: @"description"];
                         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                         [pluginResult setKeepCallbackAsBool:YES];
@@ -266,8 +269,8 @@
                 [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
                     [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
-                    [dictionary setValue:@(_id) forKey: @"id"];
-                    [dictionary setValue:_type forKey: @"type"];
+                    [dictionary setValue:@(_id) forKey: KEY_ID];
+                    [dictionary setValue:_type forKey: KEY_TYPE];
                     
                     [dictionary setValue:@"delete album" forKey: @"description"];
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
@@ -279,8 +282,8 @@
             }else{
                 NSMutableDictionary *dictionary = [NSMutableDictionary new];
                 [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
-                [dictionary setValue:@(_id) forKey: @"id"];
-                [dictionary setValue:_type forKey: @"type"];
+                [dictionary setValue:@(_id) forKey: KEY_ID];
+                [dictionary setValue:_type forKey: KEY_TYPE];
                 [dictionary setValue:@"unhandled action	" forKey: @"description"];
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                 [pluginResult setKeepCallbackAsBool:NO];
@@ -849,8 +852,8 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     [dictionary setValue:[_data objectAtIndex:_browser.currentIndex] forKey: @"photo"];
     [dictionary setValue:[[_photos objectAtIndex:_browser.currentIndex] caption] forKey: @"caption"];
     [dictionary setValue:@"editCaption" forKey: KEY_ACTION];
-    [dictionary setValue:@(_id) forKey: @"id"];
-    [dictionary setValue:_type forKey: @"type"];
+    [dictionary setValue:@(_id) forKey: KEY_ID];
+    [dictionary setValue:_type forKey: KEY_TYPE];
     [dictionary setValue:@"edit caption of photo" forKey: @"description"];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
     [pluginResult setKeepCallbackAsBool:YES];
@@ -879,10 +882,10 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
         [_browser reloadData];
         _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
-        [dictionary setValue:[targetPhoto valueForKey:@"id"] forKey: @"photo"];
+        [dictionary setValue:[targetPhoto valueForKey:KEY_ID] forKey: @"photo"];
         [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
-        [dictionary setValue:@(_id) forKey: @"id"];
-        [dictionary setValue:_type forKey: @"type"];
+        [dictionary setValue:@(_id) forKey: KEY_ID];
+        [dictionary setValue:_type forKey: KEY_TYPE];
         [dictionary setValue:@"delete photo" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [pluginResult setKeepCallbackAsBool:YES];
@@ -900,7 +903,7 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     
     [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if([obj boolValue]){
-            [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:@"id"]];
+            [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:KEY_ID]];
             
         }else{
             [tempPhotos addObject: [_photos objectAtIndex:idx]];
@@ -923,8 +926,8 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
             NSMutableDictionary *dictionary = [NSMutableDictionary new];
             [dictionary setValue:fetchArray forKey: @"photos"];
             [dictionary setValue:@"deletePhotos" forKey: KEY_ACTION];
-            [dictionary setValue:@(_id) forKey: @"id"];
-            [dictionary setValue:_type forKey: @"type"];
+            [dictionary setValue:@(_id) forKey: KEY_ID];
+            [dictionary setValue:_type forKey: KEY_TYPE];
             [dictionary setValue:@"delete photos from album" forKey: @"description"];
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
             [pluginResult setKeepCallbackAsBool:YES];
@@ -937,8 +940,8 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     NSMutableDictionary *dictionary = [NSMutableDictionary new];
     
     [dictionary setValue:@"send" forKey: KEY_ACTION];
-    [dictionary setValue:@(_id) forKey: @"id"];
-    [dictionary setValue:_type forKey: @"type"];
+    [dictionary setValue:@(_id) forKey: KEY_ID];
+    [dictionary setValue:_type forKey: KEY_TYPE];
     [dictionary setValue:@"send photos to destination" forKey: @"description"];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
     [pluginResult setKeepCallbackAsBool:NO];
