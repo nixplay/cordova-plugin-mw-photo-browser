@@ -78,7 +78,7 @@
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
     _actionSheetDicArray = [options objectForKey:@"actionSheet"];
-    _name = [options objectForKey:@"albumName"];
+    _name = [options objectForKey:@"name"];
     _id = [[options objectForKey:@"id"] integerValue];
     _type = [options objectForKey:@"type"] ;
     NSArray *captions = [options objectForKey:@"captions"];
