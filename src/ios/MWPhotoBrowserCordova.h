@@ -22,6 +22,7 @@
     IQTextView *_textView;
     NSInteger _id;
     NSString *_type;
+    NSString* _dateString;
     
 }
 @property (copy)   NSString* callbackId;

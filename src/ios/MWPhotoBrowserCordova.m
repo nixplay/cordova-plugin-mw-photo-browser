@@ -30,7 +30,7 @@
 #define DEFAULT_ACTION_ADDTOPLAYLIST @"addToPlaylist"
 #define DEFAULT_ACTION_RENAME @"rename"
 #define DEFAULT_ACTION_DELETE @"delete"
-
+#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString]
 #define MAX_CHARACTER 160
 @implementation MWPhotoBrowserCordova
 @synthesize callbackId;
@@ -40,7 +40,7 @@
 @synthesize data = _data;
 @synthesize actionSheet = _actionSheet;
 @synthesize navigationController = _navigationController;
-@synthesize albumName = _albumName;
+@synthesize albumName = _name;
 @synthesize gridViewController = _gridViewController;
 @synthesize toolBar = _toolBar;
 - (NSMutableDictionary*)callbackIds {
@@ -75,11 +75,17 @@
     NSMutableArray *thumbs = [[NSMutableArray alloc] init];
     NSUInteger photoIndex = [[options objectForKey:@"index"] intValue];
     _actionSheetDicArray = [options objectForKey:@"actionSheet"];
-    _albumName = [options objectForKey:@"albumName"];
+    _name = [options objectForKey:@"albumName"];
     _id = [[options objectForKey:@"id"] integerValue];
     _type = [options objectForKey:@"type"] ;
     NSArray *captions = [options objectForKey:@"captions"];
-    
+    _dateString = [options objectForKey:@"date"];
+    if(_dateString == nil){
+        _dateString = NSLocalizedString(@"Unknown Date",nil);
+    }
+    if(_name == nil){
+        _name = NSLocalizedString(@"Untitled",nil);
+    }
     //    NSLog(@"data %@",_data);
     for (NSString* url in imagesUrls)
     {
@@ -235,7 +241,7 @@
 //            }
             else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_RENAME]){
                 //edit album name
-                [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_albumName != nil || [_albumName isEqualToString:@""] ) ? _albumName : @"Albums") placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
+                [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_name != nil || [_name isEqualToString:@""] ) ? _name : NSLocalizedString(@"Album", nil)) placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
                     
                     //TODO send result edit album name
                     
@@ -463,7 +469,7 @@
         _gridViewController = nil;
         _browser = nil;
         _actionSheet = nil;
-        _albumName = nil;
+        _name = nil;
         _dialogView = nil;
         _rightBarbuttonItem = nil;
     }
@@ -523,7 +529,7 @@
     [photoBrowser.navigationController setNavigationBarHidden:NO animated:NO];
     navigationBar.barStyle = UIBarStyleDefault;
     navigationBar.translucent = YES;
-    photoBrowser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : NSLocalizedString(@"Untitled",nil) subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
+    photoBrowser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
     return YES;
 }
 
@@ -694,7 +700,8 @@
         _selections = tempSelections;
         
         [_browser reloadData];
-        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName :NSLocalizedString(@"Untitled",nil) subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
+//
+        _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:[targetPhoto valueForKey:@"id"] forKey: @"photo"];
         [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
@@ -741,7 +748,7 @@
         _data = tempData;
         [_browser setCurrentPhotoIndex:0];
         [_browser reloadData];
-        _browser.navigationItem.titleView = [self setTitle:(_albumName != nil ) ? _albumName : NSLocalizedString(@"Untitled",nil) subtitle:[NSString stringWithFormat:@"%lu Photos - 15 Nov 2016", (unsigned long)[_photos count] ] ];
+        _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
 #endif
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
         [dictionary setValue:fetchArray forKey: @"photos"];
