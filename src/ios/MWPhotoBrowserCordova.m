@@ -24,6 +24,7 @@
 #define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
 #define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
 #define DOWNLOADIMAGE_UIIMAGE BUNDLE_UIIMAGE(@"images/downloadCloud.png")
+#define SEND_UIIMAGE BUNDLE_UIIMAGE(@"images/send.png")
 #define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
 #define KEY_ACTION  @"action"
 #define KEY_LABEL  @"label"
@@ -592,7 +593,7 @@
         UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
                                                                                           target:self action:@selector(deletePhotos:)];
         
-        UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Add to...", nil) style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
+        
         
         UIBarButtonItem * downloadPhotosButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhotos:)];
         
@@ -600,13 +601,16 @@
         [items addObject:flexSpace];
         [items addObject:downloadPhotosButton];
         [items addObject:flexSpace];
-        [items addObject:sendtoBarButton];
-        [items addObject:flexSpace];
-        // Right - Action
-        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
-        if (actionButton ) {
-            [items addObject:actionButton];
+        if([_type isEqualToString:@"album"]){
+            UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithImage:SEND_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(sendTo:)];
+            [items addObject:sendtoBarButton];
+            [items addObject:flexSpace];
         }
+        // Right - Action
+//        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+//        if (actionButton ) {
+//            [items addObject:actionButton];
+//        }
         return items;
     }else{
         UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
@@ -929,8 +933,17 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     }
     
 }
--(void) add:(id)sender{
+-(void) sendTo:(id)sender{
+    NSMutableDictionary *dictionary = [NSMutableDictionary new];
     
+    [dictionary setValue:@"send" forKey: KEY_ACTION];
+    [dictionary setValue:@(_id) forKey: @"id"];
+    [dictionary setValue:_type forKey: @"type"];
+    [dictionary setValue:@"send photos to destination" forKey: @"description"];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+    [pluginResult setKeepCallbackAsBool:NO];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+    [self photoBrowserDidFinishModalPresentation:_browser];
 }
 -(void) actionButtonPressed:(id)sender{
     
