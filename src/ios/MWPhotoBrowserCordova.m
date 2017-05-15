@@ -34,6 +34,7 @@
 #define DEFAULT_ACTION_DELETE @"delete"
 #define SUBTITLESTRING_FOR_TITLEVIEW(dateString) [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString]
 #define MAX_CHARACTER 160
+#define CDV_PHOTO_PREFIX @"cdv_photo_"
 @implementation MWPhotoBrowserCordova
 @synthesize callbackId;
 @synthesize photos = _photos;
@@ -590,10 +591,13 @@
         UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
                                                                                           target:self action:@selector(deletePhotos:)];
         
-        UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
+        UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Add to...", nil) style:UIBarButtonItemStylePlain target:self action:@selector(add:)];
         
+        UIBarButtonItem * downloadPhotosButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhotos:)];
         
         [items addObject:deleteBarButton];
+        [items addObject:flexSpace];
+        [items addObject:downloadPhotosButton];
         [items addObject:flexSpace];
         [items addObject:sendtoBarButton];
         [items addObject:flexSpace];
@@ -644,7 +648,37 @@
             [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
         } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
             [progressHUD hideAnimated:YES];
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(imageSavedToPhotosAlbum:didFinishSavingWithError:contextInfo:), nil);
+            if ([PHObject class]) {
+                __block PHAssetChangeRequest *assetRequest;
+                __block PHObjectPlaceholder *placeholder;
+                // Save to the album
+                [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                    
+                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                        assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                        placeholder = [assetRequest placeholderForCreatedAsset];
+                    } completionHandler:^(BOOL success, NSError *error) {
+                        NSString *message;
+                        NSString *title;
+                        if (success) {
+                            title = NSLocalizedString(@"Image Saved", @"");
+                            message = NSLocalizedString(@"The image was placed in your photo album.", @"");
+                        }
+                        else {
+                            title = NSLocalizedString(@"Error", @"");
+                            message = [error description];
+                        }
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                                        message:message
+                                                                       delegate:nil
+                                                              cancelButtonTitle:@"OK"
+                                                              otherButtonTitles:nil];
+                        [alert show];
+                    }];
+                }];
+            }
+
+
         }];
         //download
     }@catch(NSException * exception){
@@ -652,24 +686,97 @@
     }
 }
 
-- (void) imageSavedToPhotosAlbum:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
-    NSString *message;
-    NSString *title;
-    if (!error) {
-        title = NSLocalizedString(@"Image Saved", @"");
-        message = NSLocalizedString(@"The image was placed in your photo album.", @"");
-    }
-    else {
-        title = NSLocalizedString(@"Error", @"");
-        message = [error description];
-    }
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                    message:message
-                                                   delegate:nil
-                                          cancelButtonTitle:@"OK"
-                                          otherButtonTitles:nil];
-    [alert show];
+typedef void(^DownloaderProgressBlock)(float progress);
+
+typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL finished);
+
+
+-(void)downloadPhotos:(id)sender{
+    NSMutableArray* urls = [NSMutableArray new];
+    [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if([obj boolValue]){
+            NSString *originalUrl = [[_data objectAtIndex:idx] objectForKey:@"originalUrl"];
+            [urls addObject:originalUrl];
+        }
+    }];
+    __block MBProgressHUD *progressHUD = [MBProgressHUD showHUDAddedTo:_browser.view
+                                                              animated:YES];
+    progressHUD.mode = MBProgressHUDModeDeterminate;
+    
+    progressHUD.label.text = NSLocalizedString(@"Downloading",nil);
+    [progressHUD showAnimated:YES];
+    
+    
+    [self downloadImages:urls total:[urls count] received:0 progress:^(float progress) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [progressHUD setProgress:progress];
+        });
+    } complete:^(NSArray *images, NSError *error, BOOL finished) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [progressHUD hideAnimated:YES];
+        });
+    } ];
+
 }
+     
+-(void) downloadImages:(NSArray*)urls total:(NSInteger)total received:(NSInteger)received progress:(DownloaderProgressBlock) progressBlack complete:(DownloaderCompletedBlock)completeBlock{
+    SDWebImageManager *manager = [SDWebImageManager sharedManager];
+    [manager downloadImageWithURL:[NSURL URLWithString:[urls firstObject]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+        
+        float progressOfATask = ((receivedSize*1.0f)/(expectedSize*1.0f))*(1.0f/total*1.0f);
+        progressBlack(((progressOfATask+received)*1.0f)/(total*1.0f));
+        
+    } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+        
+        if ([PHObject class]) {
+            __block PHAssetChangeRequest *assetRequest;
+            __block PHObjectPlaceholder *placeholder;
+            // Save to the album
+            [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                
+                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                    assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                    placeholder = [assetRequest placeholderForCreatedAsset];
+                } completionHandler:^(BOOL success, NSError *error) {
+                    if (success) {
+//                        NSString *localIdentifier = placeholder.localIdentifier;
+                        if([urls count] > 1){
+                            NSArray *tempArray = [NSArray arrayWithArray:[urls subarrayWithRange: NSMakeRange (1, [urls count]-1) ]];
+                            //save images
+                            NSInteger newReceive = (received+1);
+                            [self downloadImages:tempArray total:total received:newReceive progress:progressBlack complete:completeBlock];
+                        }else{
+                            completeBlock(nil, nil, YES);
+                        }
+                    }
+                    else {
+                        NSError* err = [NSError errorWithDomain:@"MWPhotoBrowserCordova" code:403 userInfo:@{@"message":@"Photo Library is not allowed to access"} ];
+                        completeBlock(nil, err, YES);
+                    }
+                }];
+            }];
+        }
+        
+        
+        
+    }];
+}
+
+- (NSString*)tempFilePath:(NSString*)extension
+{
+    NSString* docsPath = [NSTemporaryDirectory()stringByStandardizingPath];
+    NSFileManager* fileMgr = [[NSFileManager alloc] init]; // recommended by Apple (vs [NSFileManager defaultManager]) to be threadsafe
+    NSString* filePath;
+    
+    // generate unique file name
+    int i = 1;
+    do {
+        filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, i++, extension];
+    } while ([fileMgr fileExistsAtPath:filePath]);
+    
+    return filePath;
+}
+
 
 -(void) beginEditCaption:(UIBarButtonItem*)sender{
     
