@@ -647,7 +647,7 @@
         [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
             [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
         } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-            [progressHUD hideAnimated:YES];
+            
             if ([PHObject class]) {
                 __block PHAssetChangeRequest *assetRequest;
                 __block PHObjectPlaceholder *placeholder;
@@ -660,6 +660,7 @@
                     } completionHandler:^(BOOL success, NSError *error) {
                         NSString *message;
                         NSString *title;
+                        [progressHUD hideAnimated:YES];
                         if (success) {
                             title = NSLocalizedString(@"Image Saved", @"");
                             message = NSLocalizedString(@"The image was placed in your photo album.", @"");
@@ -715,10 +716,28 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
         dispatch_async(dispatch_get_main_queue(), ^{
             [progressHUD hideAnimated:YES];
         });
+        NSString *message;
+        NSString *title;
+        [progressHUD hideAnimated:YES];
+        if (error == nil) {
+            title = NSLocalizedString(@"Image Saved", @"");
+            message = NSLocalizedString(@"The image was placed in your photo album.", @"");
+        }
+        else {
+            title = NSLocalizedString(@"Error", @"");
+            message = [error description];
+        }
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                        message:message
+                                                       delegate:nil
+                                              cancelButtonTitle:@"OK"
+                                              otherButtonTitles:nil];
+        [alert show];
+        
     } ];
 
 }
-     
+
 -(void) downloadImages:(NSArray*)urls total:(NSInteger)total received:(NSInteger)received progress:(DownloaderProgressBlock) progressBlack complete:(DownloaderCompletedBlock)completeBlock{
     SDWebImageManager *manager = [SDWebImageManager sharedManager];
     [manager downloadImageWithURL:[NSURL URLWithString:[urls firstObject]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
@@ -742,7 +761,6 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
 //                        NSString *localIdentifier = placeholder.localIdentifier;
                         if([urls count] > 1){
                             NSArray *tempArray = [NSArray arrayWithArray:[urls subarrayWithRange: NSMakeRange (1, [urls count]-1) ]];
-                            //save images
                             NSInteger newReceive = (received+1);
                             [self downloadImages:tempArray total:total received:newReceive progress:progressBlack complete:completeBlock];
                         }else{
