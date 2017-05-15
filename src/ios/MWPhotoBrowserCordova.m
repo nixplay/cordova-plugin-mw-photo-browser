@@ -77,7 +77,7 @@
     _actionSheetDicArray = [options objectForKey:@"actionSheet"];
     _albumName = [options objectForKey:@"albumName"];
     _id = [[options objectForKey:@"id"] integerValue];
-    _type = [options objectForKey:@"id"] ;
+    _type = [options objectForKey:@"type"] ;
     NSArray *captions = [options objectForKey:@"captions"];
     
     //    NSLog(@"data %@",_data);
