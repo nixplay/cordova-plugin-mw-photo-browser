@@ -270,7 +270,8 @@
                     
                 }];
             }else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_DELETE]){
-                [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:NSLocalizedString(@"Delete album", nil)  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums. ", nil) action:^{
+                [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:
+                 [NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"Delete", nil), NSLocalizedString(_type, nil)]  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the photos from the playlist if they are not in any other albums.", nil) action:^{
                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
                     [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
                     [dictionary setValue:@(_id) forKey: KEY_ID];
@@ -280,6 +281,7 @@
                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                     [pluginResult setKeepCallbackAsBool:YES];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                    [self photoBrowserDidFinishModalPresentation:_browser];
                 }];
                 
                 
@@ -659,47 +661,63 @@
     
     @try{
         NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
-        [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-            [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
-        } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-            
-            if ([PHObject class]) {
-                __block PHAssetChangeRequest *assetRequest;
-                __block PHObjectPlaceholder *placeholder;
-                // Save to the album
-                [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-                    
-                    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                        assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
-                        placeholder = [assetRequest placeholderForCreatedAsset];
-                    } completionHandler:^(BOOL success, NSError *error) {
+        if(originalUrl != nil){
+            [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+                [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
+            } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                
+                if ([PHObject class]) {
+                    __block PHAssetChangeRequest *assetRequest;
+                    __block PHObjectPlaceholder *placeholder;
+                    // Save to the album
+                    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
                         
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            NSString *message;
-                            NSString *title;
-                            [progressHUD hideAnimated:YES];
-                            if (success) {
-                                title = NSLocalizedString(@"Image Saved", @"");
-                                message = NSLocalizedString(@"The image was placed in your photo album.", @"");
-                            }
-                            else {
-                                title = NSLocalizedString(@"Error", @"");
-                                message = [error description];
-                            }
-                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                                            message:message
-                                                                           delegate:nil
-                                                                  cancelButtonTitle:@"OK"
-                                                                  otherButtonTitles:nil];
-                            [alert show];
-                        });
-                        
+                        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                            assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                            placeholder = [assetRequest placeholderForCreatedAsset];
+                        } completionHandler:^(BOOL success, NSError *error) {
+                            
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                NSString *message;
+                                NSString *title;
+                                [progressHUD hideAnimated:YES];
+                                if (success) {
+                                    title = NSLocalizedString(@"Image Saved", @"");
+                                    message = NSLocalizedString(@"The image was placed in your photo album.", @"");
+                                }
+                                else {
+                                    title = NSLocalizedString(@"Error", @"");
+                                    message = [error description];
+                                }
+                                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                                                message:message
+                                                                               delegate:nil
+                                                                      cancelButtonTitle:@"OK"
+                                                                      otherButtonTitles:nil];
+                                [alert show];
+                            });
+                            
+                        }];
                     }];
-                }];
-            }
-
-
-        }];
+                }
+                
+                
+            }];
+        }else{
+            NSString *message;
+            NSString *title;
+            [progressHUD hideAnimated:YES];
+            
+            title = NSLocalizedString(@"Error", @"");
+            message =  NSLocalizedString(@"Photo is not available", @"");
+            
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                            message:message
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+        }
         //download
     }@catch(NSException * exception){
         NSLog(@"%@", exception.description);
@@ -716,7 +734,9 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if([obj boolValue]){
             NSString *originalUrl = [[_data objectAtIndex:idx] objectForKey:@"originalUrl"];
-            [urls addObject:originalUrl];
+            if(originalUrl != nil){
+                [urls addObject:originalUrl];
+            }
         }
     }];
     if([urls count] > 0 ){
