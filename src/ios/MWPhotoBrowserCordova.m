@@ -605,11 +605,13 @@
         
         
         
-        UIBarButtonItem * downloadPhotosButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhotos:)];
         
         [items addObject:deleteBarButton];
-        [items addObject:flexSpace];
-        [items addObject:downloadPhotosButton];
+        if([_type isEqualToString:@"album"]){
+            [items addObject:flexSpace];
+            UIBarButtonItem * downloadPhotosButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhotos:)];
+            [items addObject:downloadPhotosButton];
+        }
         
         if([_type isEqualToString:@"album"]){
             [items addObject:flexSpace];
