@@ -932,7 +932,10 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     
     [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if([obj boolValue]){
-            [fetchArray addObject: [[_data objectAtIndex:idx] valueForKey:KEY_ID]];
+            NSDictionary* object = [_data objectAtIndex:idx];
+            if([object objectForKey:KEY_ID] != nil){
+                [fetchArray addObject: [object objectForKey:KEY_ID]];
+            }
             
         }else{
             [tempPhotos addObject: [_photos objectAtIndex:idx]];
