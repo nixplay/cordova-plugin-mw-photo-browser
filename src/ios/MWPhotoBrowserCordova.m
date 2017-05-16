@@ -226,14 +226,16 @@
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
                 [self photoBrowserDidFinishModalPresentation:_browser];
             }else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_SELECT]){
-                if(!_browser.displaySelectionButtons){
-                    _gridViewController.selectionMode = _browser.displaySelectionButtons = YES;
-                    [_gridViewController.collectionView reloadData];
-                    [_browser showToolBar];
-                    sender.tag = 1;
-                    [sender setImage:nil];
-                    [sender setTitle:NSLocalizedString(@"Cancel", nil)];
-                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if(!_browser.displaySelectionButtons){
+                        _gridViewController.selectionMode = _browser.displaySelectionButtons = YES;
+                        [_gridViewController.collectionView reloadData];
+                        [_browser showToolBar];
+                        sender.tag = 1;
+                        [sender setImage:nil];
+                        [sender setTitle:NSLocalizedString(@"Cancel", nil)];
+                    }
+                });
             }
 //            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADDTOPLAYLIST]){
 //                NSMutableDictionary *dictionary = [NSMutableDictionary new];
