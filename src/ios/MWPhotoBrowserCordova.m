@@ -290,6 +290,7 @@
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                 [pluginResult setKeepCallbackAsBool:NO];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                [self photoBrowserDidFinishModalPresentation:_browser];
             }
             
             
@@ -547,7 +548,7 @@
     UILabel *titleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,-5,0,0)];
     
     titleLabel.backgroundColor = [UIColor clearColor];
-    titleLabel.textColor = [UIColor grayColor];
+    titleLabel.textColor = [UIColor blackColor];
     titleLabel.font = [UIFont boldSystemFontOfSize: 17];
     titleLabel.text = title;
     [titleLabel sizeToFit];
@@ -572,7 +573,7 @@
     } else {
         CGRect frame = subtitleLabel.frame;
         frame.origin.x = fabsf(widthDiff) / 2;
-        titleLabel.frame = CGRectIntegral(frame);
+        subtitleLabel.frame = CGRectIntegral(frame);
     }
     
     return titleView;
@@ -605,8 +606,9 @@
         [items addObject:deleteBarButton];
         [items addObject:flexSpace];
         [items addObject:downloadPhotosButton];
-        [items addObject:flexSpace];
+        
         if([_type isEqualToString:@"album"]){
+            [items addObject:flexSpace];
             UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithImage:SEND_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(sendTo:)];
             [items addObject:sendtoBarButton];
             
