@@ -259,6 +259,8 @@
                         [dictionary setValue:_type forKey: KEY_TYPE];
                         [dictionary setValue:text forKey: KEY_NAME];
                         [dictionary setValue:@"edit album name" forKey: @"description"];
+                        _browser.navigationItem.titleView = [self setTitle:text subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
+                        _name = text;
                         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                         [pluginResult setKeepCallbackAsBool:YES];
                         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -607,11 +609,12 @@
         if([_type isEqualToString:@"album"]){
             UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithImage:SEND_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(sendTo:)];
             [items addObject:sendtoBarButton];
-            [items addObject:flexSpace];
+            
         }
         // Right - Action
 //        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
 //        if (actionButton ) {
+//            [items addObject:flexSpace];
 //            [items addObject:actionButton];
 //        }
         return items;
