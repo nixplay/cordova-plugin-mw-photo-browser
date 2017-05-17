@@ -569,13 +569,16 @@
 }
 
 -(UIView*) setTitle:(NSString*)title subtitle:(NSString*)subtitle {
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,-5,0,0)];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,-5,self.navigationController.view.frame.size.width*0.7,18)];
     
     titleLabel.backgroundColor = [UIColor clearColor];
     titleLabel.textColor = [UIColor blackColor];
     titleLabel.font = [UIFont boldSystemFontOfSize: 17];
     titleLabel.text = title;
-//    [titleLabel sizeToFit];
+    titleLabel.numberOfLines = 1;
+    titleLabel.minimumScaleFactor = 0.8f;
+    titleLabel.adjustsFontSizeToFitWidth = YES;
+    titleLabel.textAlignment = NSTextAlignmentCenter;
     
     UILabel *subtitleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,18,0,0)];
     subtitleLabel.backgroundColor = [UIColor clearColor];
@@ -583,6 +586,8 @@
     subtitleLabel.font = [UIFont systemFontOfSize:12];
     subtitleLabel.text = subtitle;
     [subtitleLabel sizeToFit];
+    
+    
     
     UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, fmax(titleLabel.frame.size.width, subtitleLabel.frame.size.width), 30)];
     [titleView addSubview:titleLabel];
