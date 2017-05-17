@@ -575,7 +575,7 @@
     titleLabel.textColor = [UIColor blackColor];
     titleLabel.font = [UIFont boldSystemFontOfSize: 17];
     titleLabel.text = title;
-    [titleLabel sizeToFit];
+//    [titleLabel sizeToFit];
     
     UILabel *subtitleLabel = [[UILabel alloc] initWithFrame: CGRectMake(0,18,0,0)];
     subtitleLabel.backgroundColor = [UIColor clearColor];
@@ -923,21 +923,22 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
         self.photos = tempPhotos;
         self.thumbs = tempThumbs;
         _selections = tempSelections;
-        
-        _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
-        NSMutableDictionary *dictionary = [NSMutableDictionary new];
-        [dictionary setValue:@[[targetPhoto valueForKey:KEY_ID]] forKey: KEY_PHOTOS];
-        [dictionary setValue:KEY_DELETEPHOTOS forKey: KEY_ACTION];
-        [dictionary setValue:@(_id) forKey: KEY_ID];
-        [dictionary setValue:_type forKey: KEY_TYPE];
-        [dictionary setValue:@"delete photo" forKey: @"description"];
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-        [pluginResult setKeepCallbackAsBool:YES];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        if([_photos count] == 0){
-            [self photoBrowserDidFinishModalPresentation:_browser];
-        }else{
-          [_browser reloadData];
+        if([targetPhoto valueForKey:KEY_ID] != nil){
+            _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
+            NSMutableDictionary *dictionary = [NSMutableDictionary new];
+            [dictionary setValue:@[[targetPhoto valueForKey:KEY_ID]] forKey: KEY_PHOTOS];
+            [dictionary setValue:KEY_DELETEPHOTOS forKey: KEY_ACTION];
+            [dictionary setValue:@(_id) forKey: KEY_ID];
+            [dictionary setValue:_type forKey: KEY_TYPE];
+            [dictionary setValue:@"delete photo" forKey: @"description"];
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+            [pluginResult setKeepCallbackAsBool:YES];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+            if([_photos count] == 0){
+                [self photoBrowserDidFinishModalPresentation:_browser];
+            }else{
+                [_browser reloadData];
+            }
         }
     }];
     
