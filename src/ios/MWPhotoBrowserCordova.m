@@ -20,25 +20,34 @@
 #import <IQKeyboardManager/IQUIView+IQKeyboardToolbar.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <MBProgressHUD/MBProgressHUD.h>
-#define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
-#define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
-#define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
-#define DOWNLOADIMAGE_UIIMAGE BUNDLE_UIIMAGE(@"images/downloadCloud.png")
-#define SEND_UIIMAGE BUNDLE_UIIMAGE(@"images/send.png")
-#define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
-#define KEY_ACTION  @"action"
-#define KEY_LABEL  @"label"
+
+#define MAX_CHARACTER 160
+
 #define DEFAULT_ACTION_ADD @"add"
 #define DEFAULT_ACTION_SELECT @"select"
 #define DEFAULT_ACTION_ADDTOPLAYLIST @"addToPlaylist"
 #define DEFAULT_ACTION_RENAME @"rename"
 #define DEFAULT_ACTION_DELETE @"delete"
-#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) ([_type isEqualToString:@"album"]) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil)]
-#define MAX_CHARACTER 160
+#define KEY_ALBUM @"album"
+#define KEY_ACTION  @"action"
+#define KEY_LABEL  @"label"
 #define KEY_NAME @"name"
 #define KEY_ID @"id"
 #define KEY_TYPE @"type"
+
+#define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
+#define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
+#define DOWNLOADIMAGE_UIIMAGE BUNDLE_UIIMAGE(@"images/downloadCloud.png")
+#define SEND_UIIMAGE BUNDLE_UIIMAGE(@"images/send.png")
+#define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
+
+#define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
+#define IS_TYPE_ALBUM [_type isEqualToString:KEY_ALBUM]
+#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) (IS_TYPE_ALBUM) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil)]
+
+
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
+
 @implementation MWPhotoBrowserCordova
 @synthesize callbackId;
 @synthesize photos = _photos;
@@ -250,7 +259,7 @@
 //            }
             else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_RENAME]){
                 //edit album name
-                [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_name != nil || [_name isEqualToString:@""] ) ? _name : NSLocalizedString(@"Album", nil)) placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
+                [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album name", nil) message:((_name != nil || [_name isEqualToString:@""] ) ? _name : NSLocalizedString(KEY_ALBUM, nil)) placeholder:NSLocalizedString(@"Album name", nil) action:^(NSString * text) {
                     
                     //TODO send result edit album name
                     
@@ -454,10 +463,13 @@
     return photo;
 }
 - (MWCaptionView *)photoBrowser:(MWPhotoBrowser *)photoBrowser captionViewForPhotoAtIndex:(NSUInteger)index {
-    MWPhoto *photo = [self.photos objectAtIndex:index];
-    MWCaptionView *captionView = [[MWCaptionView alloc] initWithPhoto:photo];
-    
-    return captionView;
+    if(IS_TYPE_ALBUM){
+        MWPhoto *photo = [self.photos objectAtIndex:index];
+        MWCaptionView *captionView = [[MWCaptionView alloc] initWithPhoto:photo];
+        
+        return captionView;
+    }
+    return nil;
 }
 
 -(void) photoBrowserDidFinishModalPresentation:(MWPhotoBrowser*) browser{
@@ -607,13 +619,10 @@
         
         
         [items addObject:deleteBarButton];
-        if([_type isEqualToString:@"album"]){
+        if(IS_TYPE_ALBUM){
             [items addObject:flexSpace];
             UIBarButtonItem * downloadPhotosButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhotos:)];
             [items addObject:downloadPhotosButton];
-        }
-        
-        if([_type isEqualToString:@"album"]){
             [items addObject:flexSpace];
             UIBarButtonItem * sendtoBarButton = [[UIBarButtonItem alloc] initWithImage:SEND_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(sendTo:)];
             [items addObject:sendtoBarButton];
@@ -631,18 +640,16 @@
         fixedSpace.width = 32; // To balance action button
         UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
         NSMutableArray *items = [[NSMutableArray alloc] init];
-        
-        UIBarButtonItem * downloadPhotoButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhoto:)];
-        
-        UIBarButtonItem * editCaption = [[UIBarButtonItem alloc] initWithImage:EDIT_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(beginEditCaption:)];
-        
+        if(IS_TYPE_ALBUM){
+            UIBarButtonItem * downloadPhotoButton = [[UIBarButtonItem alloc] initWithImage:DOWNLOADIMAGE_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(downloadPhoto:)];
+            
+            UIBarButtonItem * editCaption = [[UIBarButtonItem alloc] initWithImage:EDIT_UIIMAGE style:UIBarButtonItemStylePlain target:self action:@selector(beginEditCaption:)];
+            [items addObject:downloadPhotoButton];
+            [items addObject:flexSpace];
+            [items addObject:editCaption];
+            [items addObject:flexSpace];
+        }
         UIBarButtonItem * deleteBarButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(deletePhoto:)];
-        
-        
-        [items addObject:downloadPhotoButton];
-        [items addObject:flexSpace];
-        [items addObject:editCaption];
-        [items addObject:flexSpace];
         [items addObject:deleteBarButton];
         return items;
     }
