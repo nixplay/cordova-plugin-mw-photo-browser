@@ -533,6 +533,10 @@
         [_rightBarbuttonItem setAction:@selector(home:)];
         [_rightBarbuttonItem setTarget:self];
         photoBrowser.navigationController.navigationItem.rightBarButtonItem = _rightBarbuttonItem;
+        if(_textView != nil){
+            [self resignKeyboard:_textView];
+            [self endEditCaption:_textView];
+        }
     }
     return YES;
 }
