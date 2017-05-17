@@ -538,8 +538,8 @@
     if(_textView != nil){
         [self resignKeyboard:_textView];
         [self endEditCaption:_textView];
-        [_browser hideToolBar];
     }
+    [_browser hideToolBar];
     return YES;
 }
 
