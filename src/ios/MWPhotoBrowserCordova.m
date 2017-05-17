@@ -34,6 +34,8 @@
 #define KEY_NAME @"name"
 #define KEY_ID @"id"
 #define KEY_TYPE @"type"
+#define KEY_DELETEPHOTOS @"deletePhotos"
+#define KEY_PHOTOS @"photos"
 
 #define BUNDLE_UIIMAGE(imageNames) [UIImage imageNamed:[NSString stringWithFormat:@"%@.bundle/%@", NSStringFromClass([self class]), imageNames]]
 #define OPTIONS_UIIMAGE BUNDLE_UIIMAGE(@"images/options.png")
@@ -42,8 +44,8 @@
 #define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
 
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
-#define IS_TYPE_ALBUM [_type isEqualToString:KEY_ALBUM]
-#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) (IS_TYPE_ALBUM) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(@"Photos",nil)]
+#define IS_TYPE_ALBUM ([_type isEqualToString:KEY_ALBUM] && ![_dateString isEqualToString:@"Unknown Date"])
+#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) (IS_TYPE_ALBUM) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(KEY_PHOTOS,nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(KEY_PHOTOS,nil)]
 
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
@@ -921,17 +923,22 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
         self.photos = tempPhotos;
         self.thumbs = tempThumbs;
         _selections = tempSelections;
-        [_browser reloadData];
+        
         _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
         NSMutableDictionary *dictionary = [NSMutableDictionary new];
-        [dictionary setValue:[targetPhoto valueForKey:KEY_ID] forKey: @"photo"];
-        [dictionary setValue:@"deletePhoto" forKey: KEY_ACTION];
+        [dictionary setValue:@[[targetPhoto valueForKey:KEY_ID]] forKey: KEY_PHOTOS];
+        [dictionary setValue:KEY_DELETEPHOTOS forKey: KEY_ACTION];
         [dictionary setValue:@(_id) forKey: KEY_ID];
         [dictionary setValue:_type forKey: KEY_TYPE];
         [dictionary setValue:@"delete photo" forKey: @"description"];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
         [pluginResult setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+        if([_photos count] == 0){
+            [self photoBrowserDidFinishModalPresentation:_browser];
+        }else{
+          [_browser reloadData];
+        }
     }];
     
 }
@@ -965,18 +972,25 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
             self.thumbs = tempThumbs;
             _selections = tempSelections;
             _data = tempData;
-            [_browser setCurrentPhotoIndex:0];
-            [_browser reloadData];
+            if([_photos count]>1){
+                [_browser setCurrentPhotoIndex:0];
+            }
+            
             _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
             NSMutableDictionary *dictionary = [NSMutableDictionary new];
-            [dictionary setValue:fetchArray forKey: @"photos"];
-            [dictionary setValue:@"deletePhotos" forKey: KEY_ACTION];
+            [dictionary setValue:fetchArray forKey: KEY_PHOTOS];
+            [dictionary setValue:KEY_DELETEPHOTOS forKey: KEY_ACTION];
             [dictionary setValue:@(_id) forKey: KEY_ID];
             [dictionary setValue:_type forKey: KEY_TYPE];
             [dictionary setValue:@"delete photos from album" forKey: @"description"];
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
             [pluginResult setKeepCallbackAsBool:YES];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+            if([_photos count] == 0){
+                [self photoBrowserDidFinishModalPresentation:_browser];
+            }else{
+                [_browser reloadData];
+            }
         }];
     }
     
