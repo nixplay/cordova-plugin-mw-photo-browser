@@ -19,6 +19,7 @@
 #import <IQKeyboardManager/IQUITextFieldView+Additions.h>
 #import <IQKeyboardManager/IQUIView+IQKeyboardToolbar.h>
 #import <SDWebImage/SDWebImageManager.h>
+#import <SDWebImage/SDWebImageDownloaderOperation.h>
 #import <MBProgressHUD/MBProgressHUD.h>
 
 #define MAX_CHARACTER 160
@@ -465,13 +466,10 @@
     return photo;
 }
 - (MWCaptionView *)photoBrowser:(MWPhotoBrowser *)photoBrowser captionViewForPhotoAtIndex:(NSUInteger)index {
-    if(IS_TYPE_ALBUM){
-        MWPhoto *photo = [self.photos objectAtIndex:index];
-        MWCaptionView *captionView = [[MWCaptionView alloc] initWithPhoto:photo];
-        
-        return captionView;
-    }
-    return nil;
+    MWPhoto *photo = [self.photos objectAtIndex:index];
+    MWCaptionView *captionView = [[MWCaptionView alloc] initWithPhoto:photo];
+    captionView.backgroundColor = [UIColor clearColor];
+    return captionView;
 }
 
 -(void) photoBrowserDidFinishModalPresentation:(MWPhotoBrowser*) browser{
@@ -684,9 +682,18 @@
     @try{
         NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
         if(originalUrl != nil){
-            [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+            __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] loadImageWithURL:[NSURL URLWithString:originalUrl] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+//            __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
                 [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
-            } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+            } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
+//
+//                if(operation != nil){
+//                    NSLog(@"[operation.response class] %@", [operation.response class]);
+//                    NSLog(@"allHeaderFields %@", [(NSHTTPURLResponse*)operation.response allHeaderFields] );
+//                    NSLog(@"%@", operation.debugDescription);
+//                }
+//                
+//                
                 
                 if ([PHObject class]) {
                     __block PHAssetChangeRequest *assetRequest;
@@ -804,13 +811,11 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
 
 -(void) downloadImages:(NSArray*)urls total:(NSInteger)total received:(NSInteger)received progress:(DownloaderProgressBlock) progressBlack complete:(DownloaderCompletedBlock)completeBlock{
     SDWebImageManager *manager = [SDWebImageManager sharedManager];
-    [manager downloadImageWithURL:[NSURL URLWithString:[urls firstObject]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-        
+    [manager loadImageWithURL:[NSURL URLWithString:[urls firstObject]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
         float progressOfATask = ((receivedSize*1.0f)/(expectedSize*1.0f))*(1.0f/total*1.0f);
         progressBlack(((received*1.0f)/(total*1.0f))+progressOfATask);
-        
-    } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-        
+
+    } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
         if ([PHObject class]) {
             __block PHAssetChangeRequest *assetRequest;
             __block PHObjectPlaceholder *placeholder;
@@ -836,9 +841,6 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
                 }];
             }];
         }
-        
-        
-        
     }];
 }
 
