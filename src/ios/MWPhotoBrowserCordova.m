@@ -44,8 +44,8 @@
 #define EDIT_UIIMAGE BUNDLE_UIIMAGE(@"images/edit.png")
 
 #define LIGHT_BLUE_COLOR [UIColor colorWithRed:(99/255.0f)  green:(176/255.0f)  blue:(228.0f/255.0f) alpha:1.0]
-#define IS_TYPE_ALBUM ([_type isEqualToString:KEY_ALBUM] && ![_dateString isEqualToString:@"Unknown Date"])
-#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) (IS_TYPE_ALBUM) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(KEY_PHOTOS,nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(KEY_PHOTOS,nil)]
+#define IS_TYPE_ALBUM ([_type isEqualToString:KEY_ALBUM])
+#define SUBTITLESTRING_FOR_TITLEVIEW(dateString) (IS_TYPE_ALBUM && ![_dateString isEqualToString:@"Unknown Date"] ) ? [NSString stringWithFormat:@"%lu %@ - %@", (unsigned long)[_photos count] , NSLocalizedString(KEY_PHOTOS,nil) , dateString] : [NSString stringWithFormat:@"%lu %@", (unsigned long)[_photos count] , NSLocalizedString(KEY_PHOTOS,nil)]
 
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
