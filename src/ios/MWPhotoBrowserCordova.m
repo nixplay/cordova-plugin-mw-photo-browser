@@ -212,18 +212,34 @@
         __block NSArray * titles =  [_actionSheetDicArray valueForKey:KEY_LABEL];
         __block NSArray * actions =  [_actionSheetDicArray valueForKey:KEY_ACTION];
         
+        
+        MKASOrientationConfig *portraitConfig = [[MKASOrientationConfig alloc] init];
+        portraitConfig.titleAlignment = NSTextAlignmentLeft;
+        portraitConfig.buttonTitleAlignment = MKActionSheetButtonTitleAlignment_left;
+        portraitConfig.buttonHeight = 48.0f;
+        portraitConfig.maxShowButtonCount = 4.6;
+        
+        MKASOrientationConfig *landscapeConfig = [[MKASOrientationConfig alloc] init];
+        landscapeConfig.titleAlignment = NSTextAlignmentLeft;
+        landscapeConfig.buttonTitleAlignment = MKActionSheetButtonTitleAlignment_left;
+        landscapeConfig.buttonHeight = 36.0f;
+        landscapeConfig.maxShowButtonCount = 3.6;
+        
+        
         MKActionSheet *sheet = [[MKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil) buttonTitleArray:titles selectType:MKActionSheetSelectType_common];
         sheet.titleColor = [UIColor grayColor];
-        sheet.titleAlignment = NSTextAlignmentLeft;
+        
         sheet.buttonTitleColor = [UIColor blackColor];
         sheet.buttonOpacity = 1;
-        sheet.buttonTitleAlignment = MKActionSheetButtonTitleAlignment_left;
+        
         sheet.animationDuration = 0.2f;
         sheet.blurOpacity = 0.7f;
         sheet.blackgroundOpacity = 0.6f;
         sheet.needCancelButton = NO;
-        sheet.maxShowButtonCount = 5.6;
-        sheet.separatorLeftMargin = 0;
+        
+        
+        [sheet setPortraitConfig:portraitConfig];
+        [sheet setLandscapeConfig:landscapeConfig];
         
         [sheet showWithBlock:^(MKActionSheet *actionSheet, NSInteger buttonIndex) {
             
@@ -249,17 +265,17 @@
                     }
                 });
             }
-//            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADDTOPLAYLIST]){
-//                NSMutableDictionary *dictionary = [NSMutableDictionary new];
-//                [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
-//                [dictionary setValue:@(_id) forKey: KEY_ID];
-//                [dictionary setValue:_type forKey: KEY_TYPE];
-//                [dictionary setValue:@"add album to playlist" forKey: @"description"];
-//                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-//                [pluginResult setKeepCallbackAsBool:NO];
-//                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-//                [self photoBrowserDidFinishModalPresentation:_browser];
-//            }
+            //            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADDTOPLAYLIST]){
+            //                NSMutableDictionary *dictionary = [NSMutableDictionary new];
+            //                [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
+            //                [dictionary setValue:@(_id) forKey: KEY_ID];
+            //                [dictionary setValue:_type forKey: KEY_TYPE];
+            //                [dictionary setValue:@"add album to playlist" forKey: @"description"];
+            //                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+            //                [pluginResult setKeepCallbackAsBool:NO];
+            //                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+            //                [self photoBrowserDidFinishModalPresentation:_browser];
+            //            }
             else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_RENAME]){
                 //edit album name
                 [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album Name", nil) message:((_name != nil || [_name isEqualToString:@""] ) ? _name : NSLocalizedString(KEY_ALBUM, nil)) placeholder:NSLocalizedString(@"Album Name", nil) action:^(NSString * text) {
@@ -284,17 +300,17 @@
             }else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_DELETE]){
                 [self buildDialogWithCancelText:NSLocalizedString(@"Cancel", nil) confirmText:NSLocalizedString(@"Delete", nil) title:
                  [NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"Delete", nil), NSLocalizedString(_type, nil)]  text:NSLocalizedString(@"Are you sure you want to delete this album? This will also remove the Photos from the playlist if they are not in any other albums.", nil) action:^{
-                    NSMutableDictionary *dictionary = [NSMutableDictionary new];
-                    [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
-                    [dictionary setValue:@(_id) forKey: KEY_ID];
-                    [dictionary setValue:_type forKey: KEY_TYPE];
-                    
-                    [dictionary setValue:@"delete album" forKey: @"description"];
-                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-                    [pluginResult setKeepCallbackAsBool:YES];
-                    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-                    [self photoBrowserDidFinishModalPresentation:_browser];
-                }];
+                     NSMutableDictionary *dictionary = [NSMutableDictionary new];
+                     [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
+                     [dictionary setValue:@(_id) forKey: KEY_ID];
+                     [dictionary setValue:_type forKey: KEY_TYPE];
+                     
+                     [dictionary setValue:@"delete album" forKey: @"description"];
+                     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+                     [pluginResult setKeepCallbackAsBool:YES];
+                     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+                     [self photoBrowserDidFinishModalPresentation:_browser];
+                 }];
                 
                 
             }else{
@@ -302,7 +318,7 @@
                 [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
                 [dictionary setValue:@(_id) forKey: KEY_ID];
                 [dictionary setValue:_type forKey: KEY_TYPE];
-                [dictionary setValue:@"unhandled action	" forKey: @"description"];
+                [dictionary setValue:@"unhandled action " forKey: @"description"];
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                 [pluginResult setKeepCallbackAsBool:NO];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -640,11 +656,11 @@
             
         }
         // Right - Action
-//        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
-//        if (actionButton ) {
-//            [items addObject:flexSpace];
-//            [items addObject:actionButton];
-//        }
+        //        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+        //        if (actionButton ) {
+        //            [items addObject:flexSpace];
+        //            [items addObject:actionButton];
+        //        }
         return items;
     }else{
         UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
@@ -673,7 +689,7 @@
 -(void) downloadPhoto:(id)sender{
     //TODO save photo
     __block MBProgressHUD *progressHUD = [MBProgressHUD showHUDAddedTo:_browser.view
-                                                      animated:YES];
+                                                              animated:YES];
     progressHUD.mode = MBProgressHUDModeDeterminate;
     
     progressHUD.label.text = NSLocalizedString(@"Downloading",nil);
@@ -683,17 +699,17 @@
         NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
         if(originalUrl != nil){
             __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] loadImageWithURL:[NSURL URLWithString:originalUrl] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-//            __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+                //            __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
                 [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
             } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
-//
-//                if(operation != nil){
-//                    NSLog(@"[operation.response class] %@", [operation.response class]);
-//                    NSLog(@"allHeaderFields %@", [(NSHTTPURLResponse*)operation.response allHeaderFields] );
-//                    NSLog(@"%@", operation.debugDescription);
-//                }
-//                
-//                
+                //
+                //                if(operation != nil){
+                //                    NSLog(@"[operation.response class] %@", [operation.response class]);
+                //                    NSLog(@"allHeaderFields %@", [(NSHTTPURLResponse*)operation.response allHeaderFields] );
+                //                    NSLog(@"%@", operation.debugDescription);
+                //                }
+                //
+                //
                 
                 if ([PHObject class]) {
                     __block PHAssetChangeRequest *assetRequest;
@@ -806,7 +822,7 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
             
         } ];
     }
-
+    
 }
 
 -(void) downloadImages:(NSArray*)urls total:(NSInteger)total received:(NSInteger)received progress:(DownloaderProgressBlock) progressBlack complete:(DownloaderCompletedBlock)completeBlock{
@@ -814,7 +830,7 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     [manager loadImageWithURL:[NSURL URLWithString:[urls firstObject]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
         float progressOfATask = ((receivedSize*1.0f)/(expectedSize*1.0f))*(1.0f/total*1.0f);
         progressBlack(((received*1.0f)/(total*1.0f))+progressOfATask);
-
+        
     } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
         if ([PHObject class]) {
             __block PHAssetChangeRequest *assetRequest;
