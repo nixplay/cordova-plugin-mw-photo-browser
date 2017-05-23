@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
            id="com.wunwun.plugins.mw-photo-browser-cordova"
-      version="1.0.46">
+      version="1.0.47">
 
   <name>MWPhotoBrowserCordova</name>
   <author>Calvin Lai</author>
@@ -26,7 +26,7 @@
     <source-file src="src/ios/TextInputViewController.m" />
     <pod name="MWPhotoBrowser" git="https://github.com/nixplay/MWPhotoBrowser" branch="develop"/>
     <pod name="SDWebImage" version="4.0.0"/>
-    <pod name="MKActionSheet" git="https://github.com/nixplay/MKActionSheet" />
+    <pod name="MKActionSheet" version="1.4.1"/>
     <pod name="PopupDialog" version="0.5.4"/>
     <pod name="IQKeyboardManager"/>
     <pod name="MBProgressHUD"/>
