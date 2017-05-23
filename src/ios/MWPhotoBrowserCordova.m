@@ -216,21 +216,21 @@
         MKASOrientationConfig *portraitConfig = [[MKASOrientationConfig alloc] init];
         portraitConfig.titleAlignment = NSTextAlignmentLeft;
         portraitConfig.buttonTitleAlignment = MKActionSheetButtonTitleAlignment_left;
-        portraitConfig.buttonHeight = 48.0f;
-        portraitConfig.maxShowButtonCount = 4.6;
+        portraitConfig.buttonHeight = 45.0f;
+        portraitConfig.maxShowButtonCount = 5.5f;
         
         MKASOrientationConfig *landscapeConfig = [[MKASOrientationConfig alloc] init];
         landscapeConfig.titleAlignment = NSTextAlignmentLeft;
         landscapeConfig.buttonTitleAlignment = MKActionSheetButtonTitleAlignment_left;
-        landscapeConfig.buttonHeight = 36.0f;
-        landscapeConfig.maxShowButtonCount = 3.6;
+        landscapeConfig.buttonHeight = 35.0f;
+        landscapeConfig.maxShowButtonCount = 4.5f;
         
         
         MKActionSheet *sheet = [[MKActionSheet alloc] initWithTitle:NSLocalizedString(@"Options", nil) buttonTitleArray:titles selectType:MKActionSheetSelectType_common];
         sheet.titleColor = [UIColor grayColor];
         
         sheet.buttonTitleColor = [UIColor blackColor];
-        sheet.buttonOpacity = 1;
+        sheet.buttonOpacity = 0.7;
         
         sheet.animationDuration = 0.2f;
         sheet.blurOpacity = 0.7f;
@@ -318,7 +318,7 @@
                 [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
                 [dictionary setValue:@(_id) forKey: KEY_ID];
                 [dictionary setValue:_type forKey: KEY_TYPE];
-                [dictionary setValue:@"unhandled action " forKey: @"description"];
+                [dictionary setValue:@"unhandled action	" forKey: @"description"];
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                 [pluginResult setKeepCallbackAsBool:NO];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -684,7 +684,7 @@
     
 }
 -(void)onOrientationChanged:(id)orientation{
-    
+    _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
 }
 -(void) downloadPhoto:(id)sender{
     //TODO save photo
