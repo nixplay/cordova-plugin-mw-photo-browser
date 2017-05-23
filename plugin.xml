@@ -26,7 +26,7 @@
     <source-file src="src/ios/TextInputViewController.m" />
     <pod name="MWPhotoBrowser" git="https://github.com/nixplay/MWPhotoBrowser" branch="develop"/>
     <pod name="SDWebImage" version="4.0.0"/>
-    <pod name="MKActionSheet"/>
+    <pod name="MKActionSheet" git="https://github.com/nixplay/MKActionSheet" branch="master"/>
     <pod name="PopupDialog" version="0.5.4"/>
     <pod name="IQKeyboardManager"/>
     <pod name="MBProgressHUD"/>
