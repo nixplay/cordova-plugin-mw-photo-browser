@@ -13,7 +13,8 @@
 #import <PopupDialog/PopupDialog-Swift.h>
 #import <IQKeyboardManager/IQKeyboardManager.h>
 #import <IQKeyboardManager/IQTextView.h>
-@interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate, UITextViewDelegate> {
+#import <SDWebImage/SDWebImageManager.h>
+@interface MWPhotoBrowserCordova : CDVPlugin <MWPhotoBrowserDelegate,UINavigationControllerDelegate, CAAnimationDelegate, UITextViewDelegate, SDWebImageManagerDelegate> {
 
     NSMutableDictionary* _callbackIds;
     NSMutableDictionary* _actionSheetDicArray;

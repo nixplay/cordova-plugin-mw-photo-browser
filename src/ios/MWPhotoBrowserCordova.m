@@ -74,7 +74,7 @@
     
     self.callbackId = command.callbackId;
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
-    
+    [SDWebImageManager sharedManager].delegate = self;
     NSDictionary *options = [command.arguments objectAtIndex:0];
     NSArray * imagesUrls = [options objectForKey:@"images"] ;
     _data = [options objectForKey:@"data"];
@@ -1033,5 +1033,38 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
 }
 -(void) actionButtonPressed:(id)sender{
     
+}
+
+- (UIImage *)imageManager:(SDWebImageManager *)imageManager transformDownloadedImage:(UIImage *)image withURL:(NSURL *)imageURL{
+    NSString *value = [imageManager.imageDownloader valueForHTTPHeaderField:@"x-amz-meta-orientation"];
+    if(value != nil){
+        UIImage* retImage = rotate(image, [value integerValue]);
+        return retImage;
+    }
+    return image;
+    
+}
+
+UIImage* rotate(UIImage* src, UIImageOrientation orientation)
+{
+    UIGraphicsBeginImageContext(src.size);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    if (orientation == UIImageOrientationRight) {
+        CGContextRotateCTM (context, radians(90));
+    } else if (orientation == UIImageOrientationLeft) {
+        CGContextRotateCTM (context, radians(-90));
+    } else if (orientation == UIImageOrientationDown) {
+        // NOTHING
+    } else if (orientation == UIImageOrientationUp) {
+        CGContextRotateCTM (context, radians(90));
+    }
+    
+    [src drawAtPoint:CGPointMake(0, 0)];
+    
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
 }
 @end
