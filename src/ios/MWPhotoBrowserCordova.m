@@ -50,7 +50,16 @@
 
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
-
+enum Orientation {
+    TOP_LEFT = 1,
+    TOP_RIGHT = 2,
+    BOTTOM_LEFT = 3,
+    BOTTOM_RIGHT = 4,
+    LEFT_TOP = 5,
+    RIGHT_TOP = 6,
+    LEFT_BOTTOM = 7,
+    RIGHT_BOTTOM = 8,
+};
 @implementation MWPhotoBrowserCordova
 @synthesize callbackId;
 @synthesize photos = _photos;
@@ -62,6 +71,7 @@
 @synthesize albumName = _name;
 @synthesize gridViewController = _gridViewController;
 @synthesize toolBar = _toolBar;
+@synthesize HTTPResponseHeaderOrientations = _HTTPResponseHeaderOrientations;
 - (NSMutableDictionary*)callbackIds {
     if(_callbackIds == nil) {
         _callbackIds = [[NSMutableDictionary alloc] init];
@@ -70,14 +80,15 @@
 }
 
 - (void)showGallery:(CDVInvokedUrlCommand*)command {
-    //    NSLog(@"showGalleryWith:%@", command.arguments);
     
+    [SDWebImageManager sharedManager].delegate = self;
     self.callbackId = command.callbackId;
     [self.callbackIds setValue:command.callbackId forKey:@"showGallery"];
-    [SDWebImageManager sharedManager].delegate = self;
+    
     NSDictionary *options = [command.arguments objectAtIndex:0];
     NSArray * imagesUrls = [options objectForKey:@"images"] ;
     _data = [options objectForKey:@"data"];
+    _HTTPResponseHeaderOrientations = [NSMutableDictionary new];
     if(imagesUrls == nil || [imagesUrls count] <= 0 ){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Argument \"images\" clould not be empty"];
         [pluginResult setKeepCallbackAsBool:NO];
@@ -105,7 +116,7 @@
     if(_name == nil){
         _name = NSLocalizedString(@"Untitled",nil);
     }
-    //    NSLog(@"data %@",_data);
+    
     for (NSString* url in imagesUrls)
     {
         [images addObject:[MWPhoto photoWithURL:[NSURL URLWithString: url]]];
@@ -152,14 +163,14 @@
         self.thumbs = thumbs;
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onOrientationChanged:) name:@"UIDeviceOrientationDidChangeNotification" object:nil];
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onSDWebImageDownloadReceiveResponseNotification:) name:@"SDWebImageDownloadReceiveResponseNotification" object:nil];
     
     
     // Create & present browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate: self];
     _browser = browser;
     // Set options
-    //    browser.automaticallyAdjustsScrollViewInsets = YES; // Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    
     browser.displayActionButton = NO; // Show action button to save, copy or email photos (defaults to NO)
     browser.startOnGrid = YES;
     browser.enableGrid = YES;
@@ -181,12 +192,10 @@
     
     CATransition *transition = [CATransition animation];
     transition.duration = 0.5;
-    //    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    
     transition.type = kCATransitionPush;
     transition.subtype = kCATransitionFromRight;
     [self.viewController.view.window.layer addAnimation:transition forKey:nil];
-    //    __block UIView*  oldSuperView = _navigationController.view.subviews[0];
-    //    [self.viewController.view addSubview:_navigationController.view];
     [self.viewController presentViewController:nc animated:NO completion:^{
         
     }];
@@ -207,7 +216,7 @@
         dialogAppearance.messageFont            =  [UIFont systemFontOfSize:16];
         dialogAppearance.titleColor            =  [UIColor blackColor];
         dialogAppearance.messageColor            =  [UIColor darkGrayColor];
-        //    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        
         __weak MWPhotoBrowserCordova *weakSelf = self;
         __block NSArray * titles =  [_actionSheetDicArray valueForKey:KEY_LABEL];
         __block NSArray * actions =  [_actionSheetDicArray valueForKey:KEY_ACTION];
@@ -265,17 +274,6 @@
                     }
                 });
             }
-            //            else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_ADDTOPLAYLIST]){
-            //                NSMutableDictionary *dictionary = [NSMutableDictionary new];
-            //                [dictionary setValue:@"addAlbumToPlaylist" forKey: KEY_ACTION];
-            //                [dictionary setValue:@(_id) forKey: KEY_ID];
-            //                [dictionary setValue:_type forKey: KEY_TYPE];
-            //                [dictionary setValue:@"add album to playlist" forKey: @"description"];
-            //                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-            //                [pluginResult setKeepCallbackAsBool:NO];
-            //                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-            //                [self photoBrowserDidFinishModalPresentation:_browser];
-            //            }
             else if([[actions objectAtIndex:buttonIndex] isEqualToString:DEFAULT_ACTION_RENAME]){
                 //edit album name
                 [weakSelf popupTextAreaDialogTitle:NSLocalizedString(@"Edit Album Name", nil) message:((_name != nil || [_name isEqualToString:@""] ) ? _name : NSLocalizedString(KEY_ALBUM, nil)) placeholder:NSLocalizedString(@"Album Name", nil) action:^(NSString * text) {
@@ -419,15 +417,13 @@
 }
 -(void)textViewDidBeginEditing:(UITextView *)textView
 {
-    //    [self animatetextView:_textView up:YES keyboardFrameBeginRect:keyboardRect];
+    
     textView.backgroundColor = [UIColor whiteColor];
     textView.textColor = [UIColor blackColor];
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView
 {
-    //    [self animatetextView:_textView up:YES keyboardFrameBeginRect:_keyboardRect];
-    //    [self animatetextView:textView up:NO :];
     textView.backgroundColor = [UIColor blackColor];
     textView.textColor = [UIColor whiteColor];
     [self resignKeyboard:textView];
@@ -516,8 +512,6 @@
         _rightBarbuttonItem = nil;
     }
 }
-//- (NSString *)photoBrowser:(MWPhotoBrowser *)photoBrowser titleForPhotoAtIndex:(NSUInteger)index{
-//}
 - (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didDisplayPhotoAtIndex:(NSUInteger)index{
     _browser = photoBrowser;
     NSLog(@"didDisplayPhotoAtIndex %lu", (unsigned long)index);
@@ -655,12 +649,7 @@
             [items addObject:sendtoBarButton];
             
         }
-        // Right - Action
-        //        UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
-        //        if (actionButton ) {
-        //            [items addObject:flexSpace];
-        //            [items addObject:actionButton];
-        //        }
+        
         return items;
     }else{
         UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
@@ -686,6 +675,7 @@
 -(void)onOrientationChanged:(id)orientation{
     _browser.navigationItem.titleView = [self setTitle:_name subtitle:SUBTITLESTRING_FOR_TITLEVIEW(_dateString)];
 }
+
 -(void) downloadPhoto:(id)sender{
     //TODO save photo
     __block MBProgressHUD *progressHUD = [MBProgressHUD showHUDAddedTo:_browser.view
@@ -698,18 +688,9 @@
     @try{
         NSString *originalUrl = [[_data objectAtIndex:_browser.currentIndex] objectForKey:@"originalUrl"];
         if(originalUrl != nil){
-            __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] loadImageWithURL:[NSURL URLWithString:originalUrl] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-                //            __block SDWebImageDownloaderOperation * operation = [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:originalUrl ] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+            [[SDWebImageManager sharedManager] loadImageWithURL:[NSURL URLWithString:originalUrl] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
                 [progressHUD setProgress:(receivedSize*1.0f)/(expectedSize*1.0f) ];
             } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
-                //
-                //                if(operation != nil){
-                //                    NSLog(@"[operation.response class] %@", [operation.response class]);
-                //                    NSLog(@"allHeaderFields %@", [(NSHTTPURLResponse*)operation.response allHeaderFields] );
-                //                    NSLog(@"%@", operation.debugDescription);
-                //                }
-                //
-                //
                 
                 if ([PHObject class]) {
                     __block PHAssetChangeRequest *assetRequest;
@@ -1035,36 +1016,65 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     
 }
 
+
+-(void)onSDWebImageDownloadReceiveResponseNotification:(NSNotification*)notification{
+    
+    SDWebImageDownloaderOperation *operation = ((SDWebImageDownloaderOperation *)[notification valueForKey:@"object"]);
+    NSHTTPURLResponse* response = ((NSHTTPURLResponse*)operation.response);
+    NSURL *url = [response URL];
+    NSString* key = @"x-amz-meta-orientation";
+    if([[response allHeaderFields] objectForKey:key]){
+        NSString *value = [[response allHeaderFields] valueForKey:key];
+        [_HTTPResponseHeaderOrientations setValue:@([value integerValue]) forKey:[url absoluteString]];
+    }
+}
+
+static inline double radians (double degrees) {return degrees * M_PI/180;}
 - (UIImage *)imageManager:(SDWebImageManager *)imageManager transformDownloadedImage:(UIImage *)image withURL:(NSURL *)imageURL{
-    NSString *value = [imageManager.imageDownloader valueForHTTPHeaderField:@"x-amz-meta-orientation"];
-    if(value != nil){
-        UIImage* retImage = rotate(image, [value integerValue]);
+    NSString* key = [imageURL absoluteString];
+    if([_HTTPResponseHeaderOrientations objectForKey:key]){
+        NSNumber *value = [_HTTPResponseHeaderOrientations valueForKey:key];
+        UIImage* retImage = rotate(image, ((enum Orientation)[value integerValue]));
+        [_HTTPResponseHeaderOrientations removeObjectForKey:key];
         return retImage;
     }
     return image;
     
 }
 
-UIImage* rotate(UIImage* src, UIImageOrientation orientation)
+UIImage* rotate(UIImage* src, enum Orientation orientation)
 {
-    UIGraphicsBeginImageContext(src.size);
-    
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    if (orientation == UIImageOrientationRight) {
-        CGContextRotateCTM (context, radians(90));
-    } else if (orientation == UIImageOrientationLeft) {
-        CGContextRotateCTM (context, radians(-90));
-    } else if (orientation == UIImageOrientationDown) {
-        // NOTHING
-    } else if (orientation == UIImageOrientationUp) {
-        CGContextRotateCTM (context, radians(90));
+    double rotation = 0;
+    switch (orientation) {
+        case RIGHT_BOTTOM:
+            rotation = radians(-90);
+            break;
+        case BOTTOM_LEFT:
+            rotation = radians(180);
+            break;
+        case RIGHT_TOP:
+            rotation = radians(90);
+            break;
+        default :
+            rotation = 0;
+            break;
     }
     
-    [src drawAtPoint:CGPointMake(0, 0)];
+    CGAffineTransform t = CGAffineTransformMakeRotation(rotation);
+    CGRect sizeRect = CGRectMake(0, 0, src.size.width, src.size.height);
+    CGRect destRect = CGRectApplyAffineTransform(sizeRect, t);
+    CGSize destinationSize = destRect.size;
     
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    // Draw image
+    UIGraphicsBeginImageContext(destinationSize);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextTranslateCTM(context, destinationSize.width / 2.0f, destinationSize.height / 2.0f);
+    CGContextRotateCTM(context, rotation);
+    [src drawInRect:CGRectMake(-src.size.width / 2.0f, -src.size.height / 2.0f, src.size.width, src.size.height)];
+    
+    // Save image
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-    return image;
+    return newImage;
 }
 @end

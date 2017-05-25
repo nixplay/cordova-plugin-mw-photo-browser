@@ -37,7 +37,7 @@
 @property (nonatomic, retain) MKActionSheet *actionSheet;
 @property (nonatomic, retain) NSString *albumName;
 @property (nonatomic, retain) PopupDialog *dialogView;
-
+@property (nonatomic, retain) NSMutableDictionary *HTTPResponseHeaderOrientations;
 - (void)showGallery:(CDVInvokedUrlCommand*)command;
 
 @end
