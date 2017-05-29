@@ -1,6 +1,6 @@
 PhotoBrowserPlugin
 
-package com.creedon.nixplay.photobrowser.PhotoBrowserPlugin;
+package com.creedon.photobrowser.PhotoBrowserPlugin;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;

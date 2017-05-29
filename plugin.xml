@@ -33,8 +33,8 @@
     <framework src="com.github.fishkingsin:androidphotobrowser:0.0.1"/>
     <config-file parent="/*" target="res/xml/config.xml">
       <feature name="AndroidPhotoBrowser">
-        <param name="android-package" value="com.creedon.nixplay.photobrowser"/>
-        <source-file src="src/Android/com/creedon/nixplay/photobrowser/PhotoBrowserPlugin.java" target-dir="src/com/synconset"/>
+        <param name="android-package" value="com.creedon.photobrowser"/>
+        <source-file src="PhotoBrowserPlugin.java" target-dir="src/com/creedon/photobrowser"/>
       </feature>
     </config-file>
   </platform>
