@@ -16,6 +16,11 @@ MWPhotoBrowser.prototype.showGallery = function(images, callback) {
   cordova.exec(callback, callback, "MWPhotoBrowserCordova", "showGallery", images ? [images] : []);
 };
 
+MWPhotoBrowser.prototype.showBrowser = function(images, callback) {
+  cordova.exec(callback, callback, "MWPhotoBrowserCordova", "showBrowser", images ? [images] : []);
+};
+
+
 var mwPhotoBrowser = new MWPhotoBrowser();
 
 module.exports = mwPhotoBrowser;
