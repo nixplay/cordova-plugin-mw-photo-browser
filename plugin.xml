@@ -1,47 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
-           id="com.wunwun.plugins.mw-photo-browser-cordova"
-      version="1.0.51">
-
+<plugin id="com.wunwun.plugins.mw-photo-browser-cordova" version="1.0.51" xmlns="http://cordova.apache.org/ns/plugins/1.0">
   <name>MWPhotoBrowserCordova</name>
   <author>Calvin Lai</author>
   <description>Port of MWPhotoBrowser to Cordova.</description>
-  <dependency id="cordova-plugin-cocoapod-support" version="~1.3.0" />
-  
-  <js-module src="www/mw-photo-browser.js" name="MWPhotoBrowserCordova">
-    <clobbers target="plugins.mwPhotoBrowser" />
+  <dependency id="cordova-plugin-cocoapod-support" version="~1.3.0"/>
+  <js-module name="MWPhotoBrowserCordova" src="www/mw-photo-browser.js">
+    <clobbers target="plugins.mwPhotoBrowser"/>
   </js-module>
-
   <!-- ios -->
   <platform name="ios">
-    <config-file target="config.xml" parent="/*">
+    <config-file parent="/*" target="config.xml">
       <feature name="MWPhotoBrowserCordova">
-        <param name="ios-package" value="MWPhotoBrowserCordova" />
+        <param name="ios-package" value="MWPhotoBrowserCordova"/>
       </feature>
     </config-file>
-    <header-file src="src/ios/MWPhotoBrowserCordova.h" />
-    <source-file src="src/ios/MWPhotoBrowserCordova.m" />
-    <header-file src="src/ios/TextInputViewController.h" />
-    <source-file src="src/ios/TextInputViewController.m" />
-    <pod name="MWPhotoBrowser" git="https://github.com/nixplay/MWPhotoBrowser" branch="develop"/>
+    <header-file src="src/ios/MWPhotoBrowserCordova.h"/>
+    <source-file src="src/ios/MWPhotoBrowserCordova.m"/>
+    <header-file src="src/ios/TextInputViewController.h"/>
+    <source-file src="src/ios/TextInputViewController.m"/>
+    <pod branch="develop" git="https://github.com/nixplay/MWPhotoBrowser" name="MWPhotoBrowser"/>
     <pod name="SDWebImage" version="4.0.0"/>
-    <pod name="MKActionSheet" git="https://github.com/nixplay/MKActionSheet" branch="master"/>
+    <pod branch="master" git="https://github.com/nixplay/MKActionSheet" name="MKActionSheet"/>
     <pod name="PopupDialog" version="0.5.4"/>
     <pod name="IQKeyboardManager"/>
     <pod name="MBProgressHUD"/>
     <pod name="IQKeyboardManager"/>
-    <resource-file src="src/ios/MWPhotoBrowserCordova.bundle" />
-    <resource-file src="src/ios/TextInputViewController.xib" />
+    <resource-file src="src/ios/MWPhotoBrowserCordova.bundle"/>
+    <resource-file src="src/ios/TextInputViewController.xib"/>
   </platform>
   <platform name="android">
-
-    <framework custom="true" src="build-extras.gradle" type="gradleReference" />
+    <framework custom="true" src="build-extras.gradle" type="gradleReference"/>
     <framework src="com.github.fishkingsin:androidphotobrowser:0.0.1"/>
-    <config-file target="res/xml/config.xml" parent="/*">
+    <config-file parent="/*" target="res/xml/config.xml">
       <feature name="AndroidPhotoBrowser">
         <param name="android-package" value="com.creedon.nixplay.photobrowser"/>
-        <source-file src="src/Android/com/creedon/nixplay/photobrowser/PhotoBrowserPlugin.java" target-dir="src/com/synconset" />
+        <source-file src="src/Android/com/creedon/nixplay/photobrowser/PhotoBrowserPlugin.java" target-dir="src/com/synconset"/>
       </feature>
     </config-file>
   </platform>
