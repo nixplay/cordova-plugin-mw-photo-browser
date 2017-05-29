@@ -316,7 +316,7 @@ enum Orientation {
                 [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: KEY_ACTION];
                 [dictionary setValue:@(_id) forKey: KEY_ID];
                 [dictionary setValue:_type forKey: KEY_TYPE];
-                [dictionary setValue:@"unhandled action	" forKey: @"description"];
+                [dictionary setValue:[actions objectAtIndex:buttonIndex] forKey: @"description"];
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
                 [pluginResult setKeepCallbackAsBool:NO];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
@@ -1001,16 +1001,29 @@ typedef void(^DownloaderCompletedBlock)(NSArray *images, NSError *error, BOOL fi
     
 }
 -(void) sendTo:(id)sender{
-    NSMutableDictionary *dictionary = [NSMutableDictionary new];
     
-    [dictionary setValue:@"send" forKey: KEY_ACTION];
-    [dictionary setValue:@(_id) forKey: KEY_ID];
-    [dictionary setValue:_type forKey: KEY_TYPE];
-    [dictionary setValue:@"send photos to destination" forKey: @"description"];
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-    [pluginResult setKeepCallbackAsBool:NO];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-    [self photoBrowserDidFinishModalPresentation:_browser];
+    __block NSMutableArray *fetchArray = [NSMutableArray new];
+    [_selections enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if([obj boolValue]){
+            NSDictionary* object = [_data objectAtIndex:idx];
+            if([object objectForKey:KEY_ID] != nil){
+                [fetchArray addObject: [object objectForKey:KEY_ID]];
+            }
+            
+        }
+    }];
+    if([fetchArray count] > 0 ){
+        NSMutableDictionary *dictionary = [NSMutableDictionary new];
+        [dictionary setValue:fetchArray forKey: KEY_PHOTOS];
+        [dictionary setValue:@"send" forKey: KEY_ACTION];
+        [dictionary setValue:@(_id) forKey: KEY_ID];
+        [dictionary setValue:_type forKey: KEY_TYPE];
+        [dictionary setValue:@"send photos to destination" forKey: @"description"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [pluginResult setKeepCallbackAsBool:NO];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+    }
+    
 }
 -(void) actionButtonPressed:(id)sender{
     
