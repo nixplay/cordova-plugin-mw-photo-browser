@@ -29,7 +29,6 @@
     <resource-file src="src/ios/TextInputViewController.xib"/>
   </platform>
    <platform name="android">
-    <framework custom="true" src="build-extras.gradle" type="gradleReference"/>
     <framework src="com.github.fishkingsin:androidphotobrowser:0.0.1"/>
     <config-file parent="/*" target="res/xml/config.xml">
       <feature name="AndroidPhotoBrowser">

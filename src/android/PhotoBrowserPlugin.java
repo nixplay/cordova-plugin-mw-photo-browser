@@ -1,6 +1,6 @@
 PhotoBrowserPlugin
 
-package com.creedon.photobrowser.PhotoBrowserPlugin;
+package com.creedon.cordova.plugin.photobrowser.PhotoBrowserPlugin;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
