@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin id="com.wunwun.plugins.mw-photo-browser-cordova" version="1.0.51" xmlns="http://cordova.apache.org/ns/plugins/1.0">
+<plugin id="com.wunwun.plugins.mw-photo-browser-cordova" version="1.0.52" xmlns="http://cordova.apache.org/ns/plugins/1.0">
   <name>MWPhotoBrowserCordova</name>
   <author>Calvin Lai</author>
   <description>Port of MWPhotoBrowser to Cordova.</description>
