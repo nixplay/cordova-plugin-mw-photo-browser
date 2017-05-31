@@ -28,13 +28,14 @@
     <resource-file src="src/ios/MWPhotoBrowserCordova.bundle"/>
     <resource-file src="src/ios/TextInputViewController.xib"/>
   </platform>
-   <platform name="android">
-    <framework src="com.github.fishkingsin:androidphotobrowser:0.0.2"/>
+  <platform name="android">
     <config-file parent="/*" target="res/xml/config.xml">
       <feature name="PhotoBrowserPlugin">
         <param name="android-package" value="com.creedon.cordova.plugin.photobrowser.PhotoBrowserPlugin"/>
-        <source-file src="PhotoBrowserPlugin.java" target-dir="src/com/creedon/cordova/plugin/photobrowser"/>
+        
       </feature>
     </config-file>
-  </platform> 
+    <source-file src="PhotoBrowserPlugin.java" target-dir="src/com/creedon/cordova/plugin/photobrowser"/>
+    <framework src="com.github.fishkingsin:androidphotobrowser:0.0.2"/>
+  </platform>
 </plugin>
